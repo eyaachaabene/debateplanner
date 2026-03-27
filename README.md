@@ -2,35 +2,7 @@
 
 A defense management system built with Spring Boot microservices.
 
-## Project Structure
 
-```
-debateplanner/
-├── auth-service/          # Authentication service (Spring Boot 4.0.5, Java 21)
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/defensemanagement/auth/
-│   │   │   │       ├── config/
-│   │   │   │       ├── controller/
-│   │   │   │       ├── dto/
-│   │   │   │       ├── entity/
-│   │   │   │       ├── exception/
-│   │   │   │       ├── repository/
-│   │   │   │       ├── security/
-│   │   │   │       ├── service/
-│   │   │   │       └── AuthServiceApplication.java
-│   │   │   └── resources/
-│   │   │       ├── application.yaml
-│   │   │       ├── static/
-│   │   │       └── templates/
-│   │   └── test/
-│   │       └── java/
-│   │           └── com/defensemanagement/auth/
-│   ├── pom.xml
-│   └── mvnw
-└── README.md
-```
 
 ## Auth Service Features
 
