@@ -1,0 +1,43 @@
+# Maven
+target/
+*.jar
+*.war
+*.ear
+.m2/
+pom.xml.tag
+pom.xml.releaseBackup
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.eclipse
+
+# Java
+*.class
+*.log
+*.ctxt
+.classpath
+.project
+.settings/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Gradle
+.gradle/
+build/
+
+# Others
+*.swp
+*.swo
+*~
+.DS_Store

@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: auth-service
+
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/auth_db
+    username: auth_user
+    password: auth_pass
+
+  jpa:
+    hibernate:
+      ddl-auto: create          # never use create/update in anything beyond first run
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  jackson:
+    default-property-inclusion: non_null
+   
+server:
+  port: 8082
+  error:
+    include-message: never        # never leak stack traces to clients
+
+application:
+  security:
+    jwt:
+      secret-key: dGhpc2lzYXZlcnlzZWN1cmVzZWNyZXRrZXlmb3JqV1RhY2Nlc3N0b2tlbmdlbmVyYXRpb25hbGdvcml0aG0=
+      access-token-expiration: 900000
+      refresh-token-expiration: 604800000
