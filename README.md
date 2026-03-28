@@ -1,103 +1,81 @@
 # DebatePlanner
 
-A defense management system built with Spring Boot microservices.
+A defense management system built with Spring Boot microservices architecture.
 
+## Services
 
+**Auth Service** - JWT-based authentication and user management
+- User registration, login, token refresh
+- Role-based access control (ADMIN, PROFESSOR, STUDENT)
+- 85+ comprehensive unit tests and Postman API tests
 
-## Auth Service Features
+**Academic Service** - Student and professor academic information management
+- Student/professor CRUD operations
+- Query filtering by major, level, email, and userId
+- MapStruct for DTO mapping
+- 85+ comprehensive unit tests and Postman API tests
 
-- **JWT Authentication**: Access tokens (15 min) and refresh tokens (7 days)
-- **User Registration**: Create new users with roles
-- **Login**: Authenticate with username/password
-- **role Management**: ROLE_ADMIN, ROLE_PROFESSOR, ROLE_STUDENT
-- **Spring Security**: Stateless session management with JWT filter
-- **PostgreSQL**: Persistent data storage
-- **JPA/Hibernate**: ORM for database operations
-- **Comprehensive Tests**: Unit tests covering all layers
+## Core Technologies
 
-## Technologies
+- Java 21
+- Spring Boot 4.0.5
+- Spring Security with JWT and Gateway auth
+- Spring Data JPA
+- PostgreSQL
+- MapStruct
+- JUnit 5, Mockito
+- Maven
 
-- **Java 21**
-- **Spring Boot 4.0.5**
-- **Spring Security**
-- **Spring Data JPA**
-- **PostgreSQL**
-- **jjwt 0.11.5** (JWT library)
-- **Lombok**
-- **Maven**
-- **JUnit 5** & **Mockito**
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
-
 - Java 21+
 - Maven 3.8+
 - PostgreSQL 14+
 
-### Setup & Run
+### Run Services
 
-1. **Navigate to auth-service:**
-   ```bash
-   cd auth-service
-   ```
+Each service runs independently on port 8082 (when deployed separately):
 
-2. **Configure database** in `src/main/resources/application.yaml`:
-   ```yaml
-   spring:
-     datasource:
-       url: jdbc:postgresql://localhost:5432/auth_db
-       username: auth_user
-       password: auth_pass
-   ```
-
-3. **Run with Maven:**
-   ```bash
-   mvn spring-boot:run
-   ```
-
-   Server starts on `http://localhost:8082`
-
-4. **Run tests:**
-   ```bash
-   mvn test
-   ```
-
-## API Endpoints
-
-Base URL: `http://localhost:8082/api/v1/auth`
-
-### Register
-```
-POST /register
-Content-Type: application/json
-
-{
-  "username": "john_doe",
-  "password": "password123",
-  "roles": ["ROLE_STUDENT"]
-}
+Auth Service:
+```bash
+cd auth-service
+mvn spring-boot:run
 ```
 
-### Login
-```
-POST /login
-Content-Type: application/json
-
-{
-  "username": "john_doe",
-  "password": "password123"
-}
+Academic Service:
+```bash
+cd academic-service
+mvn spring-boot:run
 ```
 
-### Refresh Token
-```
-POST /refresh-token
-Content-Type: application/json
+### Run Tests
 
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiJ9..."
-}
+Both services come fully tested with unit tests and Postman collections:
+
+```bash
+mvn test                    # Run unit tests
+```
+
+Postman collections and environments are included for API testing.
+
+## Documentation
+
+See individual README files in each service directory for detailed information:
+- `auth-service/README.md` - Auth service documentation
+- `academic-service/README.md` - Academic service documentation
+- `academic-service/POSTMAN_TESTS.md` - Postman API testing guide
+
+## Testing
+
+**Unit Tests**: All layers covered with Mockito (85+ tests per service)
+- Controllers, Services, Mappers, Repositories, Security, Exception handling
+
+**Postman Tests**: Complete API endpoint collections
+- Auth Service: auth endpoints (register, login, refresh-token)
+- Academic Service: student and professor endpoints
+
+Both services are production-ready with comprehensive test coverage.
 ```
 
 ### Logout
