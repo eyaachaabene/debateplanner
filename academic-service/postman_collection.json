@@ -1,0 +1,525 @@
+{
+  "info": {
+    "name": "Academic Service API",
+    "description": "Postman collection for testing Academic Service endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Student Endpoints",
+      "item": [
+        {
+          "name": "Create Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Username",
+                "value": "admin"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 100,\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@university.edu\",\n  \"major\": \"MASTER_SOFTWARE_ENGINEERING\",\n  \"level\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students"
+              ]
+            },
+            "description": "Create a new student"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "user"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_USER"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "1"
+              ]
+            },
+            "description": "Get a student by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student by User ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "user"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_USER"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/user/100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "user",
+                "100"
+              ]
+            },
+            "description": "Get a student by User ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "user"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_USER"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students"
+              ]
+            },
+            "description": "Get all students"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Students by Major",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "user"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_USER"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students?major=MASTER_SOFTWARE_ENGINEERING",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "major",
+                  "value": "MASTER_SOFTWARE_ENGINEERING"
+                }
+              ]
+            },
+            "description": "Get students filtered by major"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Students by Level",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "user"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_USER"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students?level=2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "level",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "Get students filtered by level"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Students by Major and Level",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "user"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_USER"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students?major=MASTER_SOFTWARE_ENGINEERING&level=2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "major",
+                  "value": "MASTER_SOFTWARE_ENGINEERING"
+                },
+                {
+                  "key": "level",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "Get students filtered by major and level"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Student",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Username",
+                "value": "admin"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 100,\n  \"firstName\": \"John\",\n  \"lastName\": \"Smith\",\n  \"email\": \"john.smith@university.edu\",\n  \"major\": \"MASTER_ARTIFICIAL_INTELLIGENCE\",\n  \"level\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "1"
+              ]
+            },
+            "description": "Update a student"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Student",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "admin"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_ADMIN"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/students/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "1"
+              ]
+            },
+            "description": "Delete a student"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Professor Endpoints",
+      "item": [
+        {
+          "name": "Create Professor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Username",
+                "value": "admin"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 200,\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"jane.smith@university.edu\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/professors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "professors"
+              ]
+            },
+            "description": "Create a new professor"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Professor by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "user"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_USER"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/professors/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "professors",
+                "1"
+              ]
+            },
+            "description": "Get a professor by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Professor by User ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "user"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_USER"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/professors/user/200",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "professors",
+                "user",
+                "200"
+              ]
+            },
+            "description": "Get a professor by User ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Professors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "user"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_USER"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/professors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "professors"
+              ]
+            },
+            "description": "Get all professors"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Professor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Username",
+                "value": "admin"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_ADMIN"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 200,\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Johnson\",\n  \"email\": \"jane.johnson@university.edu\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/professors/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "professors",
+                "1"
+              ]
+            },
+            "description": "Update a professor"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Professor",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Username",
+                "value": "admin"
+              },
+              {
+                "key": "X-User-Roles",
+                "value": "ROLE_ADMIN"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/professors/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "professors",
+                "1"
+              ]
+            },
+            "description": "Delete a professor"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8082",
+      "type": "string"
+    }
+  ]
+}
