@@ -40,8 +40,8 @@ public class AuthServiceImpl implements AuthService {
 
         Set<Role> roles = new HashSet<>();
         if (request.getRoles() == null || request.getRoles().isEmpty()) {
-            Role studentRole = roleRepository.findByName(ERole.ROLE_STUDENT)
-                    .orElseThrow(() -> new IllegalArgumentException("Role not found: ROLE_STUDENT"));
+            Role studentRole = roleRepository.findByName(ERole.STUDENT)
+                    .orElseThrow(() -> new IllegalArgumentException("Role not found: STUDENT"));
             roles.add(studentRole);
         } else {
             for (String roleName : request.getRoles()) {
