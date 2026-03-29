@@ -1,0 +1,35 @@
+export enum Role {
+  ADMIN = 'ADMIN',
+  PROFESSOR = 'PROFESSOR',
+  STUDENT = 'STUDENT'
+}
+
+export enum Major {
+  GINFO = 'GINFO',
+  GELE = 'GELE',
+  GMEC = 'GMEC',
+  GCIV = 'GCIV'
+}
+
+export enum DefenseStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+  PLANNED = 'PLANNED'
+}
+
+export enum Mention {
+  TRES_HONORABLE = 'TRES_HONORABLE',
+  HONORABLE = 'HONORABLE',
+  PASSABLE = 'PASSABLE',
+  AJOURNE = 'AJOURNE',
+  FAIRLY_GOOD = 'FAIRLY_GOOD'
+}
+
+export enum JuryRole {
+  PRESIDENT = 'PRESIDENT',
+  RAPPORTEUR = 'RAPPORTEUR',
+  EXAMINATEUR = 'EXAMINATEUR',
+  ENCADRANT = 'ENCADRANT'
+}

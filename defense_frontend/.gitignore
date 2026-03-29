@@ -1,4 +1,24 @@
+### Project docs/local notes ###
 HELP.md
+
+### Node / package managers ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+### Angular build/cache ###
+dist/
+out-tsc/
+.angular/
+coverage/
+
+### Environment files ###
+.env
+.env.*
+
+### Maven / Java ###
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -9,12 +29,12 @@ target/
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -32,16 +52,7 @@ build/
 ### VS Code ###
 .vscode/
 
-### Frontend (Angular / npm) ###
-**/node_modules/
-**/.angular/
-**/dist/
-**/out-tsc/
-**/coverage/
-.npm/
-.pnpm-store/
-.yarn/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+### OS files ###
+.DS_Store
+Thumbs.db
+Desktop.ini
