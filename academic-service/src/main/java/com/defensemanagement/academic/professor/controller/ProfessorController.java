@@ -25,7 +25,7 @@ public class ProfessorController {
     private final ProfessorService professorService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ProfessorResponse> create(@Valid @RequestBody ProfessorRequest request) {
         ProfessorResponse response = professorService.create(request);
         return ResponseEntity.status(201).body(response);
@@ -53,14 +53,14 @@ public class ProfessorController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ProfessorResponse> update(@PathVariable Long id, @Valid @RequestBody ProfessorRequest request) {
         ProfessorResponse response = professorService.update(id, request);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         professorService.delete(id);
         return ResponseEntity.noContent().build();
