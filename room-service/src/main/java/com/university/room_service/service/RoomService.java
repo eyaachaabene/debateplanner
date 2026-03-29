@@ -21,4 +21,6 @@ public interface RoomService {
     boolean existsById(Long id);
 
     boolean isRoomAvailable(Long roomId, LocalDate date, LocalTime startTime, LocalTime endTime);
+
+    List<RoomResponse> getAvailableRooms(LocalDate date, LocalTime startTime, LocalTime endTime, Long excludeDefenseId);
 }
