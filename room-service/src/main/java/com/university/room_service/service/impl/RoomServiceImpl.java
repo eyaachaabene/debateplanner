@@ -87,4 +87,14 @@ public class RoomServiceImpl implements RoomService {
     public boolean isRoomAvailable(Long roomId, LocalDate date, LocalTime startTime, LocalTime endTime) {
         return true;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RoomResponse> getAvailableRooms(LocalDate date, LocalTime startTime,
+                                                LocalTime endTime, Long excludeDefenseId) {
+        log.info("Fetching available rooms for date={} from={} to={} excludingDefense={}",
+                date, startTime, endTime, excludeDefenseId);
+
+        return roomMapper.toResponseList(roomRepository.findAll());
+    }
 }
