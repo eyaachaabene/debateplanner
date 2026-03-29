@@ -1,0 +1,78 @@
+version: "3.9"
+
+services:
+
+  # ── API Gateway ─────────────────────────────────────────────────────────────
+  gateway-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      AUTH_SERVICE_URL:     http://auth-service:8081
+      ACADEMIC_SERVICE_URL: http://academic-service:8082
+      ROOM_SERVICE_URL:     http://room-service:8083
+      DEFENSE_SERVICE_URL:  http://defense-service:8084
+      JWT_SECRET:           ${JWT_SECRET:-ThisIsASecretKeyForDefenseManagementSystemThatMustBe256BitsLong!}
+      ALLOWED_ORIGINS:      ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:4200}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+    depends_on:
+      - auth-service
+      - academic-service
+      - room-service
+      - defense-service
+    networks:
+      - defense-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # ── Auth Service (stub — replace with your real image) ───────────────────────
+  auth-service:
+    image: auth-service:latest
+    container_name: auth-service
+    expose:
+      - "8081"
+    networks:
+      - defense-net
+    restart: unless-stopped
+
+  # ── Academic Service ─────────────────────────────────────────────────────────
+  academic-service:
+    image: academic-service:latest
+    container_name: academic-service
+    expose:
+      - "8082"
+    networks:
+      - defense-net
+    restart: unless-stopped
+
+  # ── Room Service ─────────────────────────────────────────────────────────────
+  room-service:
+    image: room-service:latest
+    container_name: room-service
+    expose:
+      - "8083"
+    networks:
+      - defense-net
+    restart: unless-stopped
+
+  # ── Defense Service ──────────────────────────────────────────────────────────
+  defense-service:
+    image: defense-service:latest
+    container_name: defense-service
+    expose:
+      - "8084"
+    networks:
+      - defense-net
+    restart: unless-stopped
+
+networks:
+  defense-net:
+    driver: bridge
