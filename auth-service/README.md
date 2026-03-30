@@ -54,7 +54,7 @@ A JWT-based authentication service for the DebatePlanner defense management syst
    mvn spring-boot:run
    ```
 
-   Server starts on `http://localhost:8082`
+   Server starts on `http://localhost:8085`
 
 4. **Run tests:**
    ```bash
@@ -63,7 +63,7 @@ A JWT-based authentication service for the DebatePlanner defense management syst
 
 ## API Endpoints
 
-Base URL: `http://localhost:8082/api/v1/auth`
+Base URL: `http://localhost:8085/api/v1/auth`
 
 ### Register
 ```

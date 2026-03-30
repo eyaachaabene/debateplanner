@@ -1,25 +1,27 @@
 package com.defense.gateway.util;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * Stateless JWT utility — validates tokens and extracts claims locally.
  * Never calls the auth-service; the shared secret enables self-contained validation.
  */
-@Slf4j
 @Component
 public class JwtUtil {
 
     private final SecretKey signingKey;
 
-    public JwtUtil(@Value("${jwt.secret}") String secret) {
+    public JwtUtil(@Value("${jwt.secret-key}") String secret) {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -39,19 +41,34 @@ public class JwtUtil {
     }
 
     /**
-     * Extract userId from claims. Falls back to subject if "userId" claim is absent.
-     * Matches the claim name used by auth-service when signing the token.
+     * Extract username from JWT subject.
+     * In auth-service, the username is stored in the standard "sub" claim.
      */
-    public String getUserId(Claims claims) {
-        Object userId = claims.get("userId");
-        return userId != null ? userId.toString() : claims.getSubject();
+    public String getUsername(Claims claims) {
+        return claims.getSubject() != null ? claims.getSubject() : "";
     }
 
     /**
-     * Extract role from claims. Auth-service embeds "role" as a plain string claim.
+     * Extract roles from claims.
+     * Supports:
+     * - a collection claim: roles = ["ROLE_ADMIN", "ROLE_STUDENT"]
+     * - or a plain string claim: roles = "ROLE_ADMIN"
+     *
+     * Returns a comma-separated string suitable for X-User-Roles.
      */
-    public String getRole(Claims claims) {
-        Object role = claims.get("role");
-        return role != null ? role.toString() : "";
+    public String getRoles(Claims claims) {
+        Object roles = claims.get("roles");
+
+        if (roles == null) {
+            return "";
+        }
+
+        if (roles instanceof Collection<?> collection) {
+            return collection.stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
+        }
+
+        return roles.toString();
     }
 }

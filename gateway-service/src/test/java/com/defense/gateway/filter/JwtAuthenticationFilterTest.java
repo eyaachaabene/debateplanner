@@ -14,22 +14,26 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration tests for the JWT authentication filter.
  *
- * <p>Uses WebTestClient against a running application context.
- * Routes are not resolvable in unit-test context so we assert HTTP status codes
- * returned by the gateway itself (401 before routing, etc.).
+ * Uses WebTestClient against a running application context.
+ * Routes are not resolvable in unit-test context, so we mainly assert
+ * the gateway's own behavior (401 before routing, non-401 on public paths, etc.).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
-        "jwt.secret=TestSecretKeyForUnitTestingThatIsAtLeast256BitsLongOK!",
-        "spring.cloud.gateway.routes[0].id=test",
+        "jwt.secret-key=TestSecretKeyForUnitTestingThatIsAtLeast256BitsLongOK!",
+        "spring.cloud.gateway.routes[0].id=test-students-route",
         "spring.cloud.gateway.routes[0].uri=http://localhost:9999",
-        "spring.cloud.gateway.routes[0].predicates[0]=Path=/api/students/**"
+        "spring.cloud.gateway.routes[0].predicates[0]=Path=/api/v1/students/**",
+        "spring.cloud.gateway.routes[1].id=test-auth-route",
+        "spring.cloud.gateway.routes[1].uri=http://localhost:9998",
+        "spring.cloud.gateway.routes[1].predicates[0]=Path=/api/v1/auth/**"
 })
 class JwtAuthenticationFilterTest {
 
@@ -49,34 +53,31 @@ class JwtAuthenticationFilterTest {
         signingKey = Keys.hmacShaKeyFor(TEST_SECRET.getBytes(StandardCharsets.UTF_8));
     }
 
-    // ── Helper: mint a token ──────────────────────────────────────────────────
-
-    private String mintToken(String userId, String role, Date expiration) {
+    // Helper: mint a token matching the current auth-service format
+    private String mintToken(String username, List<String> roles, Date expiration) {
         return Jwts.builder()
-                .subject("testuser@example.com")
-                .claim("userId", userId)
-                .claim("role", role)
+                .subject(username)
+                .claim("roles", roles)
                 .expiration(expiration)
                 .signWith(signingKey)
                 .compact();
     }
 
-    // ── Tests ─────────────────────────────────────────────────────────────────
-
     @Test
-    void publicRoute_noToken_shouldBeForwarded() {
-        // /api/auth/login is public — gateway should not return 401
-        // (it may return 502 if auth-service is unreachable in test env)
+    void publicRoute_noToken_shouldNotReturn401() {
+        // Public route: filter should bypass JWT validation.
+        // Downstream route is fake, so response may be 5xx, but must not be 401.
         webTestClient.post()
-                .uri("/api/auth/login")
+                .uri("/api/v1/auth/login")
                 .exchange()
-                .expectStatus().isNotEqualTo(401);
+                .expectStatus()
+                .value(status -> assertThat(status).isNotEqualTo(401));
     }
 
     @Test
     void protectedRoute_noToken_shouldReturn401() {
         webTestClient.get()
-                .uri("/api/students")
+                .uri("/api/v1/students/test")
                 .exchange()
                 .expectStatus().isUnauthorized();
     }
@@ -84,7 +85,7 @@ class JwtAuthenticationFilterTest {
     @Test
     void protectedRoute_invalidToken_shouldReturn401() {
         webTestClient.get()
-                .uri("/api/students")
+                .uri("/api/v1/students/test")
                 .header("Authorization", "Bearer this.is.not.valid")
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -93,10 +94,10 @@ class JwtAuthenticationFilterTest {
     @Test
     void protectedRoute_expiredToken_shouldReturn401() {
         Date expired = new Date(System.currentTimeMillis() - 60_000);
-        String token = mintToken("user-1", "STUDENT", expired);
+        String token = mintToken("expireduser@example.com", List.of("ROLE_STUDENT"), expired);
 
         webTestClient.get()
-                .uri("/api/students")
+                .uri("/api/v1/students/test")
                 .header("Authorization", "Bearer " + token)
                 .exchange()
                 .expectStatus().isUnauthorized();
@@ -105,25 +106,44 @@ class JwtAuthenticationFilterTest {
     @Test
     void jwtUtil_validToken_extractsClaimsCorrectly() {
         Date expiration = new Date(System.currentTimeMillis() + 60_000);
-        String token = mintToken("42", "PROFESSOR", expiration);
+        String token = mintToken(
+                "prof@example.com",
+                List.of("ROLE_PROFESSOR"),
+                expiration
+        );
 
         Claims claims = jwtUtil.validateAndExtract(token);
 
-        assertThat(jwtUtil.getUserId(claims)).isEqualTo("42");
-        assertThat(jwtUtil.getRole(claims)).isEqualTo("PROFESSOR");
+        assertThat(jwtUtil.getUsername(claims)).isEqualTo("prof@example.com");
+        assertThat(jwtUtil.getRoles(claims)).isEqualTo("ROLE_PROFESSOR");
     }
 
     @Test
-    void jwtUtil_missingUserId_fallsBackToSubject() {
-        // Token without "userId" claim — should fall back to subject
+    void jwtUtil_multipleRoles_extractsCommaSeparatedRoles() {
+        Date expiration = new Date(System.currentTimeMillis() + 60_000);
+        String token = mintToken(
+                "admin@example.com",
+                List.of("ROLE_ADMIN", "ROLE_PROFESSOR"),
+                expiration
+        );
+
+        Claims claims = jwtUtil.validateAndExtract(token);
+
+        assertThat(jwtUtil.getUsername(claims)).isEqualTo("admin@example.com");
+        assertThat(jwtUtil.getRoles(claims)).isEqualTo("ROLE_ADMIN,ROLE_PROFESSOR");
+    }
+
+    @Test
+    void jwtUtil_missingRoles_returnsEmptyString() {
         String token = Jwts.builder()
                 .subject("fallback@example.com")
-                .claim("role", "ADMIN")
                 .expiration(new Date(System.currentTimeMillis() + 60_000))
                 .signWith(signingKey)
                 .compact();
 
         Claims claims = jwtUtil.validateAndExtract(token);
-        assertThat(jwtUtil.getUserId(claims)).isEqualTo("fallback@example.com");
+
+        assertThat(jwtUtil.getUsername(claims)).isEqualTo("fallback@example.com");
+        assertThat(jwtUtil.getRoles(claims)).isEmpty();
     }
 }

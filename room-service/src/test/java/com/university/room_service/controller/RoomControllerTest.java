@@ -57,11 +57,11 @@ class RoomControllerTest {
     }
 
     @Nested
-    @DisplayName("POST /api/rooms")
+    @DisplayName("POST /api/v1/rooms")
     class CreateRoomEndpoint {
 
         @Test
-        @DisplayName("POST /api/rooms - should return 201 with room body for valid request")
+        @DisplayName("POST /api/v1/rooms - should return 201 with room body for valid request")
         void shouldCreateRoom() throws Exception {
             // Arrange
             RoomRequest request = buildRequest("A101", 40);
@@ -69,7 +69,7 @@ class RoomControllerTest {
             when(roomService.createRoom(any(RoomRequest.class))).thenReturn(response);
 
             // Act + Assert
-            mockMvc.perform(post("/api/rooms")
+            mockMvc.perform(post("/api/v1/rooms")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
@@ -79,13 +79,13 @@ class RoomControllerTest {
         }
 
         @Test
-        @DisplayName("POST /api/rooms - should return 400 when name is blank")
+        @DisplayName("POST /api/v1/rooms - should return 400 when name is blank")
         void shouldReturnBadRequestForBlankName() throws Exception {
             // Arrange
             RoomRequest request = buildRequest("   ", 40);
 
             // Act + Assert
-            mockMvc.perform(post("/api/rooms")
+            mockMvc.perform(post("/api/v1/rooms")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -94,13 +94,13 @@ class RoomControllerTest {
         }
 
         @Test
-        @DisplayName("POST /api/rooms - should return 400 when capacity is zero")
+        @DisplayName("POST /api/v1/rooms - should return 400 when capacity is zero")
         void shouldReturnBadRequestForZeroCapacity() throws Exception {
             // Arrange
             RoomRequest request = buildRequest("A101", 0);
 
             // Act + Assert
-            mockMvc.perform(post("/api/rooms")
+            mockMvc.perform(post("/api/v1/rooms")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -109,13 +109,13 @@ class RoomControllerTest {
         }
 
         @Test
-        @DisplayName("POST /api/rooms - should return 400 when capacity is negative")
+        @DisplayName("POST /api/v1/rooms - should return 400 when capacity is negative")
         void shouldReturnBadRequestForNegativeCapacity() throws Exception {
             // Arrange
             RoomRequest request = buildRequest("A101", -5);
 
             // Act + Assert
-            mockMvc.perform(post("/api/rooms")
+            mockMvc.perform(post("/api/v1/rooms")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -124,7 +124,7 @@ class RoomControllerTest {
         }
 
         @Test
-        @DisplayName("POST /api/rooms - should return 409 when duplicate room name is provided")
+        @DisplayName("POST /api/v1/rooms - should return 409 when duplicate room name is provided")
         void shouldReturnConflictForDuplicateName() throws Exception {
             // Arrange
             RoomRequest request = buildRequest("A101", 40);
@@ -132,7 +132,7 @@ class RoomControllerTest {
                     .thenThrow(new RoomAlreadyExistsException("Room with name 'A101' already exists"));
 
             // Act + Assert
-            mockMvc.perform(post("/api/rooms")
+            mockMvc.perform(post("/api/v1/rooms")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict());
@@ -140,11 +140,11 @@ class RoomControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/rooms")
+    @DisplayName("GET /api/v1/rooms")
     class GetAllRoomsEndpoint {
 
         @Test
-        @DisplayName("GET /api/rooms - should return 200 with list of rooms")
+        @DisplayName("GET /api/v1/rooms - should return 200 with list of rooms")
         void shouldReturnRoomList() throws Exception {
             // Arrange
             List<RoomResponse> responses = List.of(
@@ -154,7 +154,7 @@ class RoomControllerTest {
             when(roomService.getAllRooms()).thenReturn(responses);
 
             // Act + Assert
-            mockMvc.perform(get("/api/rooms"))
+            mockMvc.perform(get("/api/v1/rooms"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].id").value(1L))
                     .andExpect(jsonPath("$[0].name").value("A101"))
@@ -163,30 +163,30 @@ class RoomControllerTest {
         }
 
         @Test
-        @DisplayName("GET /api/rooms - should return 200 with empty array when no rooms exist")
+        @DisplayName("GET /api/v1/rooms - should return 200 with empty array when no rooms exist")
         void shouldReturnEmptyArray() throws Exception {
             // Arrange
             when(roomService.getAllRooms()).thenReturn(List.of());
 
             // Act + Assert
-            mockMvc.perform(get("/api/rooms"))
+            mockMvc.perform(get("/api/v1/rooms"))
                     .andExpect(status().isOk())
                     .andExpect(content().json("[]"));
         }
     }
 
     @Nested
-    @DisplayName("GET /api/rooms/{id}")
+    @DisplayName("GET /api/v1/rooms/{id}")
     class GetRoomByIdEndpoint {
 
         @Test
-        @DisplayName("GET /api/rooms/{id} - should return 200 when room is found")
+        @DisplayName("GET /api/v1/rooms/{id} - should return 200 when room is found")
         void shouldReturnRoomById() throws Exception {
             // Arrange
             when(roomService.getRoomById(1L)).thenReturn(buildResponse(1L, "A101", 40));
 
             // Act + Assert
-            mockMvc.perform(get("/api/rooms/1"))
+            mockMvc.perform(get("/api/v1/rooms/1"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(1L))
                     .andExpect(jsonPath("$.name").value("A101"))
@@ -194,52 +194,52 @@ class RoomControllerTest {
         }
 
         @Test
-        @DisplayName("GET /api/rooms/{id} - should return 404 when room is not found")
+        @DisplayName("GET /api/v1/rooms/{id} - should return 404 when room is not found")
         void shouldReturnNotFoundWhenRoomMissing() throws Exception {
             // Arrange
             when(roomService.getRoomById(99L)).thenThrow(new RoomNotFoundException("Room with id 99 not found"));
 
             // Act + Assert
-            mockMvc.perform(get("/api/rooms/99"))
+            mockMvc.perform(get("/api/v1/rooms/99"))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("GET /api/rooms/{id}/exists")
+    @DisplayName("GET /api/v1/rooms/{id}/exists")
     class ExistsEndpoint {
 
         @Test
-        @DisplayName("GET /api/rooms/{id}/exists - should return true when room exists")
+        @DisplayName("GET /api/v1/rooms/{id}/exists - should return true when room exists")
         void shouldReturnTrueForExistingRoom() throws Exception {
             // Arrange
             when(roomService.existsById(1L)).thenReturn(true);
 
             // Act + Assert
-            mockMvc.perform(get("/api/rooms/1/exists"))
+            mockMvc.perform(get("/api/v1/rooms/1/exists"))
                     .andExpect(status().isOk())
                     .andExpect(content().string("true"));
         }
 
         @Test
-        @DisplayName("GET /api/rooms/{id}/exists - should return false when room does not exist")
+        @DisplayName("GET /api/v1/rooms/{id}/exists - should return false when room does not exist")
         void shouldReturnFalseForMissingRoom() throws Exception {
             // Arrange
             when(roomService.existsById(2L)).thenReturn(false);
 
             // Act + Assert
-            mockMvc.perform(get("/api/rooms/2/exists"))
+            mockMvc.perform(get("/api/v1/rooms/2/exists"))
                     .andExpect(status().isOk())
                     .andExpect(content().string("false"));
         }
     }
 
     @Nested
-    @DisplayName("PUT /api/rooms/{id}")
+    @DisplayName("PUT /api/v1/rooms/{id}")
     class UpdateRoomEndpoint {
 
         @Test
-        @DisplayName("PUT /api/rooms/{id} - should return 200 with updated room for valid request")
+        @DisplayName("PUT /api/v1/rooms/{id} - should return 200 with updated room for valid request")
         void shouldUpdateRoom() throws Exception {
             // Arrange
             RoomRequest request = buildRequest("A101-Updated", 55);
@@ -247,7 +247,7 @@ class RoomControllerTest {
             when(roomService.updateRoom(eq(1L), any(RoomRequest.class))).thenReturn(response);
 
             // Act + Assert
-            mockMvc.perform(put("/api/rooms/1")
+            mockMvc.perform(put("/api/v1/rooms/1")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
@@ -257,7 +257,7 @@ class RoomControllerTest {
         }
 
         @Test
-        @DisplayName("PUT /api/rooms/{id} - should return 404 when room id is not found")
+        @DisplayName("PUT /api/v1/rooms/{id} - should return 404 when room id is not found")
         void shouldReturnNotFoundOnUpdateWhenMissing() throws Exception {
             // Arrange
             RoomRequest request = buildRequest("A101", 40);
@@ -265,14 +265,14 @@ class RoomControllerTest {
                     .thenThrow(new RoomNotFoundException("Room with id 100 not found"));
 
             // Act + Assert
-            mockMvc.perform(put("/api/rooms/100")
+            mockMvc.perform(put("/api/v1/rooms/100")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound());
         }
 
         @Test
-        @DisplayName("PUT /api/rooms/{id} - should return 409 when updated name already exists")
+        @DisplayName("PUT /api/v1/rooms/{id} - should return 409 when updated name already exists")
         void shouldReturnConflictOnUpdateWhenDuplicateName() throws Exception {
             // Arrange
             RoomRequest request = buildRequest("A101", 40);
@@ -280,20 +280,20 @@ class RoomControllerTest {
                     .thenThrow(new RoomAlreadyExistsException("Room with name 'A101' already exists"));
 
             // Act + Assert
-            mockMvc.perform(put("/api/rooms/1")
+            mockMvc.perform(put("/api/v1/rooms/1")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict());
         }
 
         @Test
-        @DisplayName("PUT /api/rooms/{id} - should return 400 for invalid request with blank name")
+        @DisplayName("PUT /api/v1/rooms/{id} - should return 400 for invalid request with blank name")
         void shouldReturnBadRequestForInvalidUpdatePayload() throws Exception {
             // Arrange
             RoomRequest request = buildRequest("", 40);
 
             // Act + Assert
-            mockMvc.perform(put("/api/rooms/1")
+            mockMvc.perform(put("/api/v1/rooms/1")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest());
@@ -303,17 +303,17 @@ class RoomControllerTest {
     }
 
     @Nested
-    @DisplayName("DELETE /api/rooms/{id}")
+    @DisplayName("DELETE /api/v1/rooms/{id}")
     class DeleteRoomEndpoint {
 
         @Test
-        @DisplayName("DELETE /api/rooms/{id} - should return 204 when room exists")
+        @DisplayName("DELETE /api/v1/rooms/{id} - should return 204 when room exists")
         void shouldDeleteRoom() throws Exception {
             // Arrange
             doNothing().when(roomService).deleteRoom(1L);
 
             // Act + Assert
-            mockMvc.perform(delete("/api/rooms/1"))
+            mockMvc.perform(delete("/api/v1/rooms/1"))
                     .andExpect(status().isNoContent())
                     .andExpect(content().string(""));
 
@@ -321,7 +321,7 @@ class RoomControllerTest {
         }
 
         @Test
-        @DisplayName("DELETE /api/rooms/{id} - should return 404 when room does not exist")
+        @DisplayName("DELETE /api/v1/rooms/{id} - should return 404 when room does not exist")
         void shouldReturnNotFoundWhenDeletingMissingRoom() throws Exception {
             // Arrange
             doThrow(new RoomNotFoundException("Room with id 404 not found"))
@@ -329,7 +329,7 @@ class RoomControllerTest {
                     .deleteRoom(404L);
 
             // Act + Assert
-            mockMvc.perform(delete("/api/rooms/404"))
+            mockMvc.perform(delete("/api/v1/rooms/404"))
                     .andExpect(status().isNotFound());
         }
     }

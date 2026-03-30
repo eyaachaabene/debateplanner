@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Global JWT authentication filter.
@@ -28,10 +29,10 @@ import java.util.List;
  * immediately. For protected routes the filter:
  * <ol>
  *   <li>Extracts the Bearer token from the Authorization header</li>
- *   <li>Validates the JWT signature and expiration <em>locally</em> (no auth-service call)</li>
- *   <li>Attaches X-User-Id and X-User-Role headers for downstream services</li>
+ *   <li>Validates the JWT signature and expiration locally (no auth-service call)</li>
+ *   <li>Attaches X-User-Username, X-User-Roles and X-Request-Id headers for downstream services</li>
  *   <li>Attaches X-Request-Id for distributed tracing</li>
- *   <li>Returns 401 / 403 on any security violation</li>
+ *   <li>Returns 401 on security violations</li>
  * </ol>
  */
 @Slf4j
@@ -40,12 +41,14 @@ import java.util.List;
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final String HEADER_USER_ID  = "X-User-Id";
-    private static final String HEADER_USER_ROLE = "X-User-Role";
+    private static final String HEADER_USER_USERNAME = "X-User-Username";
+    private static final String HEADER_USER_ROLES = "X-User-Roles";
+    private static final String HEADER_REQUEST_ID = "X-Request-Id";
 
     private static final List<String> PUBLIC_PATHS = List.of(
-            "/api/auth/login",
-            "/api/auth/register",
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/refresh-token",
             "/actuator/**"
     );
 
@@ -62,16 +65,16 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
-        String requestId = java.util.UUID.randomUUID().toString();
+        String requestId = UUID.randomUUID().toString();
 
         log.info("[{}] {} {}", requestId, request.getMethod(), path);
 
-        // ── Public routes: bypass JWT check ──────────────────────────────────
+        // Public routes: bypass JWT validation, but still attach request id
         if (isPublicPath(path)) {
             return chain.filter(addRequestId(exchange, requestId));
         }
 
-        // ── Protected routes: validate JWT ───────────────────────────────────
+        // Protected routes: require and validate JWT
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             log.warn("[{}] Missing or malformed Authorization header", requestId);
@@ -88,36 +91,36 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             return unauthorizedResponse(exchange, "Invalid or expired token");
         }
 
-        String userId = jwtUtil.getUserId(claims);
-        String role   = jwtUtil.getRole(claims);
+        String username = jwtUtil.getUsername(claims);
+        String roles = jwtUtil.getRoles(claims);
 
-        log.info("[{}] Authenticated user={} role={}", requestId, userId, role);
+        log.info("[{}] Authenticated username={} roles={}", requestId, username, roles);
 
         // Mutate request: add context headers for downstream services
-        ServerHttpRequest mutated = request.mutate()
-                .header(HEADER_USER_ID,   userId)
-                .header(HEADER_USER_ROLE, role)
-                .header("X-Request-Id",   requestId)
+        ServerHttpRequest mutatedRequest = request.mutate()
+                .header(HEADER_USER_USERNAME, username)
+                .header(HEADER_USER_ROLES, roles)
+                .header(HEADER_REQUEST_ID, requestId)
                 // Strip the original Authorization header so downstream services
-                // cannot accidentally trust a potentially-invalid token.
-                // Comment this out if downstream services need to re-verify the token themselves.
-                // .headers(h -> h.remove(HttpHeaders.AUTHORIZATION))
+                // do not accidentally trust the raw token.
+                // Remove this line only if downstream services must re-validate JWTs themselves.
+                .headers(headers -> headers.remove(HttpHeaders.AUTHORIZATION))
                 .build();
 
-        return chain.filter(exchange.mutate().request(mutated).build());
+        return chain.filter(exchange.mutate().request(mutatedRequest).build());
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private boolean isPublicPath(String path) {
-        return PUBLIC_PATHS.stream().anyMatch(p -> pathMatcher.match(p, path));
+        return PUBLIC_PATHS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
     private ServerWebExchange addRequestId(ServerWebExchange exchange, String requestId) {
+        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                .header(HEADER_REQUEST_ID, requestId)
+                .build();
+
         return exchange.mutate()
-                .request(exchange.getRequest().mutate()
-                        .header("X-Request-Id", requestId)
-                        .build())
+                .request(mutatedRequest)
                 .build();
     }
 
@@ -125,7 +128,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        byte[] body = ("{\"error\":\"Unauthorized\",\"message\":\"" + message + "\"}").getBytes(StandardCharsets.UTF_8);
+
+        String json = "{\"error\":\"Unauthorized\",\"message\":\"" + message + "\"}";
+        byte[] body = json.getBytes(StandardCharsets.UTF_8);
+
         return response.writeWith(Mono.just(response.bufferFactory().wrap(body)));
     }
 }

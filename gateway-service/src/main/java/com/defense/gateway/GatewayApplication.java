@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Responsibilities:
  *  - Reverse-proxy routing to downstream microservices
  *  - Stateless JWT validation (no auth-service call per request)
- *  - Header propagation (X-User-Id, X-User-Role)
+ *  - Header propagation (X-User-Username, X-User-Roles)
  *  - Centralized CORS, logging, and error handling
  */
 @SpringBootApplication

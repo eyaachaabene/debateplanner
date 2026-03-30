@@ -45,10 +45,10 @@ auth-service  academic-   room-service  defense-service
 
 ## Security Flow
 
-1. **Login**: `POST /api/auth/login` → forwarded to auth-service (no JWT required)
+1. **Login**: `POST /api/v1/auth/login` → forwarded to auth-service (no JWT required)
 2. **Token Issuance**: Auth-service returns JWT
 3. **Authenticated Requests**: Gateway validates JWT, extracts user info, adds headers, and forwards
-4. **Public Routes**: `/api/auth/login`, `/api/auth/register`, `/actuator/**` (no token required)
+4. **Public Routes**: `/api/v1/auth/login`, `/api/v1/auth/register`, `/actuator/**` (no token required)
 
 ---
 
@@ -90,11 +90,11 @@ Gateway available at [http://localhost:8080](http://localhost:8080)
 
 | Path prefix           | Target service         |
 |----------------------|-----------------------|
-| `/api/auth/**`       | auth-service:8081     |
-| `/api/students/**`   | academic-service:8082 |
-| `/api/professors/**` | academic-service:8082 |
-| `/api/rooms/**`      | room-service:8083     |
-| `/api/defenses/**`   | defense-service:8084  |
+| `/api/v1/auth/**`       | auth-service:8085     |
+| `/api/v1/students/**`   | academic-service:8082 |
+| `/api/v1/professors/**` | academic-service:8082 |
+| `/api/v1/rooms/**`      | room-service:8083     |
+| `/api/v1/defenses/**`   | defense-service:8084  |
 
 ---
 
