@@ -13,6 +13,8 @@ public interface StudentService {
 
     StudentResponse getByUserId(Long userId);
 
+    StudentResponse getCurrentStudent(Long userId);
+
     List<StudentResponse> getAll();
 
     List<StudentResponse> getByMajor(EMajor major);

@@ -46,6 +46,11 @@ public class ProfessorServiceImpl implements ProfessorService {
     }
 
     @Override
+    public ProfessorResponse getCurrentProfessor(Long userId) {
+        return getByUserId(userId);
+    }
+
+    @Override
     public List<ProfessorResponse> getAll() {
         return professorRepository.findAll().stream()
                 .map(professorMapper::toResponse)

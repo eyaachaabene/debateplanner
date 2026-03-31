@@ -4,6 +4,8 @@ target/
 *.war
 *.ear
 .m2/
+.m2-local/
+**/.m2-local/
 pom.xml.tag
 pom.xml.releaseBackup
 

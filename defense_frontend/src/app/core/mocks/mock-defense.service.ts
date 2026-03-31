@@ -220,14 +220,14 @@ export class MockDefenseService {
       ...defense,
       finalAverage: average,
       mention: this.computeMention(average),
-      status: DefenseStatus.COMPLETED
+        status: DefenseStatus.PUBLISHED
     };
 
     return of({ success: true }).pipe(delay(300));
   }
 
   getResult(id: number): Observable<Defense> {
-    const defense = this.defenses.find(d => d.id === id && d.status === DefenseStatus.COMPLETED);
+    const defense = this.defenses.find(d => d.id === id && d.status === DefenseStatus.PUBLISHED);
 
     if (!defense) {
       return throwError(() => new Error('Résultat non disponible')).pipe(delay(200));
@@ -247,7 +247,7 @@ export class MockDefenseService {
   }
 
   getMyResult(): Observable<Defense> {
-    const defense = this.defenses.find(d => d.studentId === 1 && d.status === DefenseStatus.COMPLETED);
+    const defense = this.defenses.find(d => d.studentId === 1 && d.status === DefenseStatus.PUBLISHED);
 
     if (!defense) {
       return throwError(() => new Error('Résultat non disponible')).pipe(delay(200));
@@ -262,7 +262,7 @@ export class MockDefenseService {
     if (status === 'UPCOMING') {
       filtered = filtered.filter(d => d.status === DefenseStatus.PLANNED);
     } else if (status === 'DONE') {
-      filtered = filtered.filter(d => d.status === DefenseStatus.COMPLETED);
+        filtered = filtered.filter(d => d.status === DefenseStatus.PUBLISHED);
     }
 
     return of(filtered).pipe(delay(200));
@@ -284,12 +284,12 @@ export class MockDefenseService {
   }
 
   private computeMention(average: number): Mention {
-    if (average >= 18) return Mention.TRES_HONORABLE;
-    if (average >= 16) return Mention.HONORABLE;
-    if (average >= 14) return Mention.PASSABLE;
+    if (average >= 18) return Mention.EXCELLENT;
+    if (average >= 16) return Mention.VERY_GOOD;
+    if (average >= 14) return Mention.GOOD;
     if (average >= 12) return Mention.FAIRLY_GOOD;
     if (average >= 10) return Mention.PASSABLE;
-    return Mention.AJOURNE;
+    return Mention.FAIL;
   }
 
   private timesOverlap(start1: string, end1: string, start2: string, end2: string): boolean {

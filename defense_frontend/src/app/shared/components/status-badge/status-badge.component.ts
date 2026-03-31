@@ -31,44 +31,49 @@ import { MentionLabelPipe } from '../../pipes/mention-label.pipe';
       display: inline-block;
     }
     
-    .pending {
+    .planned {
       background-color: #fff3e0;
       color: #e65100;
     }
     
-    .confirmed {
+    .ongoing {
       background-color: #e8f5e9;
       color: #2e7d32;
     }
     
-    .completed {
+    .published {
       background-color: #e3f2fd;
       color: #1565c0;
     }
-    
-    .cancelled {
-      background-color: #ffebee;
-      color: #c62828;
-    }
-    
-    .tres-honorable {
-      background-color: #e8f5e9;
-      color: #2e7d32;
-    }
-    
-    .honorable {
-      background-color: #e3f2fd;
-      color: #1565c0;
-    }
-    
+
     .passable {
       background-color: #fff3e0;
       color: #e65100;
     }
     
-    .ajourne {
+    .fail {
       background-color: #ffebee;
       color: #c62828;
+    }
+
+    .fairly-good {
+      background-color: #fff8e1;
+      color: #f57f17;
+    }
+
+    .good {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .very-good {
+      background-color: #e3f2fd;
+      color: #1565c0;
+    }
+
+    .excellent {
+      background-color: #ede7f6;
+      color: #5e35b1;
     }
   `]
 })

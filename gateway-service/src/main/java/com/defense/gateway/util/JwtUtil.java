@@ -87,4 +87,9 @@ public class JwtUtil {
 
         return roles.toString();
     }
+
+    public String getUserId(Claims claims) {
+        Object userId = claims.get("userId");
+        return userId == null ? "" : String.valueOf(userId);
+    }
 }

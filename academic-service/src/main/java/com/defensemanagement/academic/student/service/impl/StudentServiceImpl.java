@@ -47,6 +47,11 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    public StudentResponse getCurrentStudent(Long userId) {
+        return getByUserId(userId);
+    }
+
+    @Override
     public List<StudentResponse> getAll() {
         return studentRepository.findAll().stream()
                 .map(studentMapper::toResponse)

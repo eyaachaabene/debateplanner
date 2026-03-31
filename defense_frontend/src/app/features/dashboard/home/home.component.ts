@@ -257,7 +257,7 @@ export class HomeComponent implements OnInit {
       next: (data) => {
         const defenses = data.defenses;
         const planned = defenses.filter(d => d.status === 'PLANNED').length;
-        const published = defenses.filter(d => d.status === 'COMPLETED').length;
+        const published = defenses.filter(d => d.status === 'PUBLISHED').length;
 
         this.stats.set({
           totalStudents: data.students.length,

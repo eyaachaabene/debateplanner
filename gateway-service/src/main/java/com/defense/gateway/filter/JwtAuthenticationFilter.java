@@ -42,6 +42,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private static final String BEARER_PREFIX = "Bearer ";
     private static final String HEADER_USER_USERNAME = "X-User-Username";
+    private static final String HEADER_USER_ID = "X-User-Id";
     private static final String HEADER_USER_ROLES = "X-User-Roles";
     private static final String HEADER_REQUEST_ID = "X-Request-Id";
 
@@ -92,13 +93,15 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         String username = jwtUtil.getUsername(claims);
+        String userId = jwtUtil.getUserId(claims);
         String roles = jwtUtil.getRoles(claims);
 
-        log.info("[{}] Authenticated username={} roles={}", requestId, username, roles);
+        log.info("[{}] Authenticated username={} userId={} roles={}", requestId, username, userId, roles);
 
         // Mutate request: add context headers for downstream services
         ServerHttpRequest mutatedRequest = request.mutate()
                 .header(HEADER_USER_USERNAME, username)
+                .header(HEADER_USER_ID, userId)
                 .header(HEADER_USER_ROLES, roles)
                 .header(HEADER_REQUEST_ID, requestId)
                 .build();

@@ -7,11 +7,12 @@ import { Mention } from '@core/models';
 })
 export class MentionLabelPipe implements PipeTransform {
   private readonly labels: Record<Mention, string> = {
-    [Mention.TRES_HONORABLE]: 'Très Honorable',
-    [Mention.HONORABLE]: 'Honorable',
+    [Mention.FAIL]: 'Ajourné',
     [Mention.FAIRLY_GOOD]: 'Assez bien',
     [Mention.PASSABLE]: 'Passable',
-    [Mention.AJOURNE]: 'Ajourné'
+    [Mention.GOOD]: 'Bien',
+    [Mention.VERY_GOOD]: 'Très bien',
+    [Mention.EXCELLENT]: 'Excellent'
   };
 
   transform(value: Mention | string): string {

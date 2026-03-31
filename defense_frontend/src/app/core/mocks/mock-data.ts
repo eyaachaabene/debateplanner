@@ -221,9 +221,9 @@ export const MOCK_DEFENSES: Defense[] = [
     defenseDate: formatDate(addDays(today, -5)),
     startTime: '09:00',
     endTime: '11:00',
-    status: DefenseStatus.COMPLETED,
+    status: DefenseStatus.PUBLISHED,
     finalAverage: 17.5,
-    mention: Mention.HONORABLE,
+    mention: Mention.VERY_GOOD,
     presidentGrade: 17,
     reviewerGrade: 18,
     examinerGrade: 17.5,
@@ -241,7 +241,7 @@ export const MOCK_DEFENSES: Defense[] = [
     defenseDate: formatDate(addDays(today, -10)),
     startTime: '14:00',
     endTime: '16:00',
-    status: DefenseStatus.COMPLETED,
+    status: DefenseStatus.PUBLISHED,
     finalAverage: 15,
     mention: Mention.PASSABLE,
     presidentGrade: 15,
@@ -296,7 +296,7 @@ export interface MockDefenseResult {
 }
 
 export const MOCK_RESULTS: MockDefenseResult[] = MOCK_DEFENSES
-  .filter(d => d.status === DefenseStatus.COMPLETED && d.finalAverage !== undefined)
+  .filter(d => d.status === DefenseStatus.PUBLISHED && d.finalAverage !== undefined)
   .map(d => ({
     defenseId: d.id,
     studentId: d.studentId,

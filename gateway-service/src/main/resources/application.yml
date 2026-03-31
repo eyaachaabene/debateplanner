@@ -20,6 +20,16 @@ spring:
             - Path=/api/v1/auth/**
 
         # ── Academic Service (students) ────────────────────────────────────────
+        - id: defense-service-student-results
+          uri: ${DEFENSE_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/students/me/result,/api/v1/students/*/result
+
+        - id: defense-service
+          uri: ${DEFENSE_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/defenses/**,/api/v1/jury/**
+
         - id: academic-service-students
           uri: ${ACADEMIC_SERVICE_URL:http://localhost:8082}
           predicates:
@@ -38,11 +48,6 @@ spring:
             - Path=/api/v1/rooms/**
 
         # ── Defense Service ───────────────────────────────────────────────────
-        - id: defense-service
-          uri: ${DEFENSE_SERVICE_URL:http://defense-service:8084}
-          predicates:
-            - Path=/api/v1/defenses/**
-
       # Global timeout settings
       httpclient:
         connect-timeout: 5000   # ms

@@ -12,6 +12,8 @@ public interface ProfessorService {
 
     ProfessorResponse getByUserId(Long userId);
 
+    ProfessorResponse getCurrentProfessor(Long userId);
+
     List<ProfessorResponse> getAll();
 
     ProfessorResponse update(Long id, ProfessorRequest request);

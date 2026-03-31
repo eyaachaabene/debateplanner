@@ -109,7 +109,7 @@ import { StatusBadgeComponent, LoadingSpinnerComponent } from '@shared/component
         </mat-card-content>
       </mat-card>
 
-      @if (currentDefense.status === 'COMPLETED') {
+      @if (currentDefense.status === 'PUBLISHED') {
         <mat-card class="results-card">
           <mat-card-header>
             <mat-card-title>Résultats</mat-card-title>

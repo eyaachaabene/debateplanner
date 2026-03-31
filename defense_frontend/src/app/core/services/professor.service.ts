@@ -13,6 +13,7 @@ export interface ProfessorFilters {
 })
 export class ProfessorService {
   private readonly apiUrl = `${environment.apiUrl}/professors`;
+  private readonly defenseApiUrl = `${environment.apiUrl}/defenses`;
 
   constructor(private http: HttpClient) {}
 
@@ -57,7 +58,7 @@ export class ProfessorService {
       params = params.set('excludeDefenseId', excludeDefenseId.toString());
     }
 
-    return this.http.get<Professor[]>(`${this.apiUrl}/available-for-role`, { params });
+    return this.http.get<Professor[]>(`${this.defenseApiUrl}/available-jury-members`, { params });
   }
 
   getMe(): Observable<Professor> {

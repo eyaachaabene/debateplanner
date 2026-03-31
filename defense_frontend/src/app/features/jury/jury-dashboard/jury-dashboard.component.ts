@@ -279,13 +279,13 @@ export class JuryDashboardComponent implements OnInit {
     if (!professor) return [];
 
     return this.allDefenses().filter(d =>
-      d.status !== 'COMPLETED' &&
+      d.status !== 'PUBLISHED' &&
       [d.supervisorId, d.presidentId, d.reviewerId, d.examinerId].includes(professor.id)
     );
   });
 
   completedDefenses = computed(() =>
-    this.allDefenses().filter(d => d.status === 'COMPLETED')
+    this.allDefenses().filter(d => d.status === 'PUBLISHED')
   );
 
   ngOnInit(): void {
