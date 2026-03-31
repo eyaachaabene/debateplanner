@@ -40,7 +40,8 @@ export class AuthService {
       return of(void 0);
     }
 
-    return this.http.post<void>(`${environment.apiUrl}/auth/logout`, {}).pipe(
+    const headers = { Authorization: `Bearer ${token}` };
+    return this.http.post<void>(`${environment.apiUrl}/auth/logout`, {}, { headers }).pipe(
       tap(() => {
         this.clearSession();
         this.router.navigate(['/login']);

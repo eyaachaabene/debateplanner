@@ -101,10 +101,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 .header(HEADER_USER_USERNAME, username)
                 .header(HEADER_USER_ROLES, roles)
                 .header(HEADER_REQUEST_ID, requestId)
-                // Strip the original Authorization header so downstream services
-                // do not accidentally trust the raw token.
-                // Remove this line only if downstream services must re-validate JWTs themselves.
-                .headers(headers -> headers.remove(HttpHeaders.AUTHORIZATION))
                 .build();
 
         return chain.filter(exchange.mutate().request(mutatedRequest).build());

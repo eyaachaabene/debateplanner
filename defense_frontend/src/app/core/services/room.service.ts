@@ -19,7 +19,7 @@ export class RoomService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(filters?: RoomFilters): Observable<PagedResponse<Room>> {
+  getAll(filters?: RoomFilters): Observable<Room[]> {
     let params = new HttpParams();
 
     if (filters?.search) {
@@ -34,7 +34,7 @@ export class RoomService {
       params = params.set('size', filters.size.toString());
     }
 
-    return this.http.get<PagedResponse<Room>>(this.apiUrl, { params });
+    return this.http.get<Room[]>(this.apiUrl, { params });
   }
 
   getById(id: number): Observable<Room> {

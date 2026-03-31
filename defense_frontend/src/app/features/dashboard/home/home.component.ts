@@ -262,7 +262,7 @@ export class HomeComponent implements OnInit {
         this.stats.set({
           totalStudents: data.students.length,
           totalProfessors: data.professors.length,
-          totalRooms: data.rooms.totalElements,
+          totalRooms: data.rooms.length,
           upcomingDefenses: planned,
           completedDefenses: published
         });

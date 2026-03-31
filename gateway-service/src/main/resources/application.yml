@@ -18,55 +18,30 @@ spring:
           uri: ${AUTH_SERVICE_URL:http://localhost:8085}
           predicates:
             - Path=/api/v1/auth/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: auth-cb
-                fallbackUri: forward:/fallback/auth
 
         # ── Academic Service (students) ────────────────────────────────────────
         - id: academic-service-students
           uri: ${ACADEMIC_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/v1/students/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: academic-cb
-                fallbackUri: forward:/fallback/academic
 
         # ── Academic Service (professors) ─────────────────────────────────────
         - id: academic-service-professors
           uri: ${ACADEMIC_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/v1/professors/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: academic-cb
-                fallbackUri: forward:/fallback/academic
 
         # ── Room Service ──────────────────────────────────────────────────────
         - id: room-service
           uri: ${ROOM_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/v1/rooms/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: room-cb
-                fallbackUri: forward:/fallback/room
 
         # ── Defense Service ───────────────────────────────────────────────────
         - id: defense-service
           uri: ${DEFENSE_SERVICE_URL:http://defense-service:8084}
           predicates:
             - Path=/api/v1/defenses/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: defense-cb
-                fallbackUri: forward:/fallback/defense
 
       # Global timeout settings
       httpclient:

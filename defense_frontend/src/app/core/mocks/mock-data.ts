@@ -90,7 +90,7 @@ export const MOCK_STUDENTS: Student[] = [
     firstName: 'Thomas',
     lastName: 'Leroy',
     email: 'thomas.leroy@university.fr',
-    major: Major.GINFO,
+    major: Major.ENGINEERING_COMPUTER_SCIENCE,
     level: 5
   },
   {
@@ -99,7 +99,7 @@ export const MOCK_STUDENTS: Student[] = [
     firstName: 'Emma',
     lastName: 'Moreau',
     email: 'emma.moreau@university.fr',
-    major: Major.GELE,
+    major: Major.MASTER_SOFTWARE_ENGINEERING,
     level: 5
   },
   {
@@ -107,7 +107,7 @@ export const MOCK_STUDENTS: Student[] = [
     firstName: 'Lucas',
     lastName: 'Garcia',
     email: 'lucas.garcia@university.fr',
-    major: Major.GMEC,
+    major: Major.LICENCE_BIG_DATA,
     level: 5
   },
   {
@@ -115,7 +115,7 @@ export const MOCK_STUDENTS: Student[] = [
     firstName: 'Chloe',
     lastName: 'Dubois',
     email: 'chloe.dubois@university.fr',
-    major: Major.GINFO,
+    major: Major.MASTER_ARTIFICIAL_INTELLIGENCE,
     level: 5
   },
   {
@@ -123,7 +123,7 @@ export const MOCK_STUDENTS: Student[] = [
     firstName: 'Antoine',
     lastName: 'Roux',
     email: 'antoine.roux@university.fr',
-    major: Major.GCIV,
+    major: Major.LICENCE_MULTIMEDIA,
     level: 5
   },
   {
@@ -131,7 +131,7 @@ export const MOCK_STUDENTS: Student[] = [
     firstName: 'Lea',
     lastName: 'Simon',
     email: 'lea.simon@university.fr',
-    major: Major.GELE,
+    major: Major.DOCTORATE_COMPUTER_SCIENCE,
     level: 5
   },
   {
@@ -139,7 +139,7 @@ export const MOCK_STUDENTS: Student[] = [
     firstName: 'Hugo',
     lastName: 'Laurent',
     email: 'hugo.laurent@university.fr',
-    major: Major.GMEC,
+    major: Major.ENGINEERING_COMPUTER_SCIENCE,
     level: 5
   },
   {
@@ -147,7 +147,7 @@ export const MOCK_STUDENTS: Student[] = [
     firstName: 'Camille',
     lastName: 'Morel',
     email: 'camille.morel@university.fr',
-    major: Major.GINFO,
+    major: Major.MASTER_SOFTWARE_ENGINEERING,
     level: 5
   }
 ];

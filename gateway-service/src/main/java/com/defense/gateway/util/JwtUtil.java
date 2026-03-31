@@ -4,25 +4,28 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
  * Stateless JWT utility — validates tokens and extracts claims locally.
  * Never calls the auth-service; the shared secret enables self-contained validation.
+ * Uses JJWT 0.11.5 API.
  */
+@Slf4j
 @Component
 public class JwtUtil {
 
-    private final SecretKey signingKey;
+    private final String secretKey;
 
     public JwtUtil(@Value("${jwt.secret-key}") String secret) {
-        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.secretKey = secret;
     }
 
     /**
@@ -33,11 +36,24 @@ public class JwtUtil {
      * @throws JwtException if the token is invalid or expired
      */
     public Claims validateAndExtract(String token) {
-        return Jwts.parser()
-                .verifyWith(signingKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException e) {
+            log.warn("JWT validation failed: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    /**
+     * Get the signing key from base64-encoded secret.
+     */
+    private SecretKey getSigningKey() {
+        byte[] decodedKey = Base64.getDecoder().decode(secretKey);
+        return Keys.hmacShaKeyFor(decodedKey);
     }
 
     /**

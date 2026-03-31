@@ -13,6 +13,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -27,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = {
-        "jwt.secret-key=TestSecretKeyForUnitTestingThatIsAtLeast256BitsLongOK!",
+        "jwt.secret-key=VGVzdFNlY3JldEtleUZvclVuaXRUZXN0aW5nVGhhdElzQXRMZWFzdDI1NkJpdHNMb25nT0sh",
         "spring.cloud.gateway.routes[0].id=test-students-route",
         "spring.cloud.gateway.routes[0].uri=http://localhost:9999",
         "spring.cloud.gateway.routes[0].predicates[0]=Path=/api/v1/students/**",
@@ -38,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class JwtAuthenticationFilterTest {
 
     private static final String TEST_SECRET =
-            "TestSecretKeyForUnitTestingThatIsAtLeast256BitsLongOK!";
+            "VGVzdFNlY3JldEtleUZvclVuaXRUZXN0aW5nVGhhdElzQXRMZWFzdDI1NkJpdHNMb25nT0sh";
 
     @Autowired
     private WebTestClient webTestClient;
@@ -50,15 +51,17 @@ class JwtAuthenticationFilterTest {
 
     @BeforeEach
     void setUp() {
-        signingKey = Keys.hmacShaKeyFor(TEST_SECRET.getBytes(StandardCharsets.UTF_8));
+        // Decode the base64 secret to create the signing key (matches JwtUtil behavior)
+        byte[] decodedBytes = Base64.getDecoder().decode(TEST_SECRET.getBytes(StandardCharsets.UTF_8));
+        signingKey = Keys.hmacShaKeyFor(decodedBytes);
     }
 
-    // Helper: mint a token matching the current auth-service format
+    // Helper: mint a token matching the current auth-service format (JJWT 0.11.5 API)
     private String mintToken(String username, List<String> roles, Date expiration) {
         return Jwts.builder()
-                .subject(username)
+                .setSubject(username)
                 .claim("roles", roles)
-                .expiration(expiration)
+                .setExpiration(expiration)
                 .signWith(signingKey)
                 .compact();
     }
@@ -136,8 +139,8 @@ class JwtAuthenticationFilterTest {
     @Test
     void jwtUtil_missingRoles_returnsEmptyString() {
         String token = Jwts.builder()
-                .subject("fallback@example.com")
-                .expiration(new Date(System.currentTimeMillis() + 60_000))
+                .setSubject("fallback@example.com")
+                .setExpiration(new Date(System.currentTimeMillis() + 60_000))
                 .signWith(signingKey)
                 .compact();
 

@@ -7,6 +7,7 @@ import com.university.room_service.exception.RoomNotFoundException;
 import com.university.room_service.mapper.RoomMapper;
 import com.university.room_service.model.Room;
 import com.university.room_service.repository.RoomRepository;
+import com.university.room_service.repository.RoomBookingRepository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -32,6 +33,9 @@ class RoomServiceImplTest {
 
     @Mock
     private RoomRepository roomRepository;
+
+    @Mock
+    private RoomBookingRepository roomBookingRepository;
 
     @Mock
     private RoomMapper roomMapper;
@@ -322,20 +326,22 @@ class RoomServiceImplTest {
     class IsRoomAvailable {
 
         @Test
-        @DisplayName("isRoomAvailable - should always return true and not call repository")
-        void shouldAlwaysReturnTrueWithoutRepositoryUsage() {
+        @DisplayName("isRoomAvailable - should return true when no conflicting bookings exist")
+        void shouldReturnTrueWhenNoConflicts() {
             // Arrange
             Long roomId = 1L;
             LocalDate date = LocalDate.of(2026, 3, 28);
             LocalTime startTime = LocalTime.of(10, 0);
             LocalTime endTime = LocalTime.of(11, 0);
 
+            when(roomBookingRepository.findConflictingBookings(roomId, date, startTime, endTime, -1L))
+                    .thenReturn(List.of());
+
             // Act
-            boolean available = roomService.isRoomAvailable(roomId, date, startTime, endTime);
+            boolean available = roomService.isRoomAvailable(roomId, date, startTime, endTime, null);
 
             // Assert
             assertThat(available).isTrue();
-            verifyNoInteractions(roomRepository);
         }
     }
 }

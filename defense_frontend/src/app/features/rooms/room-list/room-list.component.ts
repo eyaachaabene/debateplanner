@@ -184,9 +184,9 @@ export class RoomListComponent implements OnInit {
       page: this.currentPage,
       size: this.pageSize
     }).subscribe({
-      next: (response) => {
-        this.dataSource.data = response.content;
-        this.totalElements = response.totalElements;
+      next: (rooms) => {
+        this.dataSource.data = rooms;
+        this.totalElements = rooms.length;
         this.isLoading.set(false);
       },
       error: () => {

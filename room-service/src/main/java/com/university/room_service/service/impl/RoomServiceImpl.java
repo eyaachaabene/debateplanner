@@ -6,11 +6,14 @@ import com.university.room_service.exception.RoomAlreadyExistsException;
 import com.university.room_service.exception.RoomNotFoundException;
 import com.university.room_service.mapper.RoomMapper;
 import com.university.room_service.model.Room;
+import com.university.room_service.model.RoomBooking;
 import com.university.room_service.repository.RoomRepository;
+import com.university.room_service.repository.RoomBookingRepository;
 import com.university.room_service.service.RoomService;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RoomServiceImpl implements RoomService {
 
     private final RoomRepository roomRepository;
+    private final RoomBookingRepository roomBookingRepository;
     private final RoomMapper roomMapper;
 
     @Override
@@ -40,7 +44,10 @@ public class RoomServiceImpl implements RoomService {
     @Override
     @Transactional(readOnly = true)
     public List<RoomResponse> getAllRooms() {
-        return roomMapper.toResponseList(roomRepository.findAll());
+        log.info("Fetching all rooms");
+        List<RoomResponse> rooms = roomMapper.toResponseList(roomRepository.findAll());
+        log.info("Found {} rooms", rooms.size());
+        return rooms;
     }
 
     @Override
@@ -84,8 +91,10 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean isRoomAvailable(Long roomId, LocalDate date, LocalTime startTime, LocalTime endTime) {
-        return true;
+    public boolean isRoomAvailable(Long roomId, LocalDate date, LocalTime startTime, LocalTime endTime, Long excludeDefenseId) {
+        List<RoomBooking> conflicts = roomBookingRepository.findConflictingBookings(
+                roomId, date, startTime, endTime, excludeDefenseId != null ? excludeDefenseId : -1L);
+        return conflicts.isEmpty();
     }
 
     @Override
@@ -95,6 +104,26 @@ public class RoomServiceImpl implements RoomService {
         log.info("Fetching available rooms for date={} from={} to={} excludingDefense={}",
                 date, startTime, endTime, excludeDefenseId);
 
-        return roomMapper.toResponseList(roomRepository.findAll());
+        return roomRepository.findAll().stream()
+                .filter(room -> isRoomAvailable(room.getId(), date, startTime, endTime, excludeDefenseId))
+                .map(roomMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public RoomBooking bookRoom(Long roomId, Long defenseId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        RoomBooking booking = RoomBooking.builder()
+                .roomId(roomId)
+                .defenseId(defenseId)
+                .defenseDate(date)
+                .startTime(startTime)
+                .endTime(endTime)
+                .build();
+        return roomBookingRepository.save(booking);
+    }
+
+    @Override
+    public void cancelBooking(Long defenseId) {
+        roomBookingRepository.deleteByDefenseId(defenseId);
     }
 }
