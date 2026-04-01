@@ -35,27 +35,27 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<StudentResponse> getById(@PathVariable Long id) {
         StudentResponse response = studentService.getById(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<StudentResponse> getByUserId(@PathVariable Long userId) {
         StudentResponse response = studentService.getByUserId(userId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<StudentResponse> getMe(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(studentService.getCurrentStudent(userId));
     }
 
     @GetMapping
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<StudentResponse>> getAll(
             @RequestParam(required = false) EMajor major,
             @RequestParam(required = false) Integer level) {

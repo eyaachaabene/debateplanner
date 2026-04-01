@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -136,7 +136,16 @@ import { LoadingSpinnerComponent } from '@shared/components';
                     @if (assignmentForm.get('roomId')?.hasError('required')) {
                       <mat-error>La salle est requise</mat-error>
                     }
+                    @if (assignmentForm.get('roomId')?.hasError('roomUnavailable')) {
+                      <mat-error>La salle choisie est déjà occupée pour ce créneau.</mat-error>
+                    }
                   </mat-form-field>
+
+                  @if (roomAvailabilityMessage()) {
+                    <div class="form-warning">
+                      {{ roomAvailabilityMessage() }}
+                    </div>
+                  }
 
                   <div class="form-row">
                     <mat-form-field appearance="outline">
@@ -185,6 +194,12 @@ import { LoadingSpinnerComponent } from '@shared/components';
                       </mat-select>
                     </mat-form-field>
                   </div>
+
+                    @if (assignmentForm.hasError('duplicateJuryMembers') && (assignmentForm.dirty || assignmentForm.touched)) {
+                      <div class="form-error">
+                        Chaque membre du jury doit être différent.
+                      </div>
+                    }
 
                   <div class="step-actions">
                     <button mat-button matStepperPrevious>Précédent</button>
@@ -270,6 +285,18 @@ import { LoadingSpinnerComponent } from '@shared/components';
     .confirmation-block {
       padding: 16px 0;
     }
+
+    .form-error {
+      margin-top: 8px;
+      color: #d32f2f;
+      font-size: 13px;
+    }
+
+    .form-warning {
+      margin: 4px 0 12px;
+      color: #b26a00;
+      font-size: 13px;
+    }
   `]
 })
 export class DefenseFormComponent implements OnInit {
@@ -296,7 +323,7 @@ export class DefenseFormComponent implements OnInit {
     presidentId: [null, Validators.required],
     reviewerId: [null, Validators.required],
     examinerId: [null, Validators.required]
-  });
+  }, { validators: [this.uniqueJuryMembersValidator()] });
 
   students = signal<Student[]>([]);
   availableRooms = signal<Room[]>([]);
@@ -304,6 +331,7 @@ export class DefenseFormComponent implements OnInit {
   availablePresidents = signal<Professor[]>([]);
   availableReviewers = signal<Professor[]>([]);
   availableExaminers = signal<Professor[]>([]);
+  roomAvailabilityMessage = signal('');
 
   minDate = new Date();
   timeSlots = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
@@ -382,6 +410,8 @@ export class DefenseFormComponent implements OnInit {
       this.availablePresidents.set([]);
       this.availableReviewers.set([]);
       this.availableExaminers.set([]);
+      this.roomAvailabilityMessage.set('');
+      this.assignmentForm.get('roomId')?.setErrors(null);
     }
   }
 
@@ -399,7 +429,26 @@ export class DefenseFormComponent implements OnInit {
     const excludeDefenseId = this.isEditMode ? this.defenseId! : undefined;
 
     this.roomService.getAvailable(defenseDate, startTime, endTime, excludeDefenseId).subscribe({
-      next: (rooms) => this.availableRooms.set(rooms)
+      next: (rooms) => {
+        this.availableRooms.set(rooms);
+
+        const selectedRoomId = this.assignmentForm.get('roomId')?.value;
+        const selectedRoomStillAvailable = selectedRoomId && rooms.some(room => room.id === selectedRoomId);
+
+        if (rooms.length === 0) {
+          this.roomAvailabilityMessage.set('Aucune salle n\'est disponible pour ce créneau. La salle choisie est probablement déjà occupée.');
+          this.assignmentForm.get('roomId')?.setErrors({ roomUnavailable: true });
+        } else if (selectedRoomId && !selectedRoomStillAvailable) {
+          this.roomAvailabilityMessage.set('La salle sélectionnée n\'est pas disponible pour ce créneau. Elle est déjà occupée.');
+          this.assignmentForm.get('roomId')?.setErrors({ roomUnavailable: true });
+        } else {
+          this.roomAvailabilityMessage.set('');
+
+          if (!this.assignmentForm.get('roomId')?.hasError('required')) {
+            this.assignmentForm.get('roomId')?.setErrors(null);
+          }
+        }
+      }
     });
 
     this.professorService.getAvailableForRole('SUPERVISOR', defenseDate, startTime, endTime, excludeDefenseId).subscribe({
@@ -472,6 +521,20 @@ export class DefenseFormComponent implements OnInit {
       return date.toISOString().split('T')[0];
     }
     return date;
+  }
+
+  private uniqueJuryMembersValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const supervisorId = control.get('supervisorId')?.value;
+      const presidentId = control.get('presidentId')?.value;
+      const reviewerId = control.get('reviewerId')?.value;
+      const examinerId = control.get('examinerId')?.value;
+
+      const selectedIds = [supervisorId, presidentId, reviewerId, examinerId].filter(value => value !== null && value !== undefined);
+      const uniqueIds = new Set(selectedIds);
+
+      return selectedIds.length === uniqueIds.size ? null : { duplicateJuryMembers: true };
+    };
   }
 
   goBack(): void {

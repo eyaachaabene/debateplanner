@@ -10,4 +10,10 @@ export interface AuthResponse {
   refreshToken: string;
   tokenType: string;
   expiresIn: number;
+  mustChangePassword: boolean;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }

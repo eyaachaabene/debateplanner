@@ -38,7 +38,7 @@ public class DefenseController {
     private final AcademicClient academicClient;
 
     @GetMapping("/api/v1/defenses")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<DefenseResponse>> getAll(
             @RequestParam(required = false) DefenseStatus status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
@@ -46,7 +46,7 @@ public class DefenseController {
     }
 
     @GetMapping("/api/v1/defenses/{id}")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<DefenseResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(defenseService.getById(id));
     }
@@ -79,7 +79,7 @@ public class DefenseController {
     }
 
     @GetMapping("/api/v1/defenses/{id}/jury")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<JuryAssignmentRequest> getJury(@PathVariable Long id) {
         return ResponseEntity.ok(defenseService.getJury(id));
     }
@@ -129,7 +129,7 @@ public class DefenseController {
     }
 
     @GetMapping("/api/v1/defenses/{id}/grades")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<DefenseGradesResponse> getGrades(@PathVariable Long id) {
         return ResponseEntity.ok(defenseService.getGrades(id));
     }
@@ -141,13 +141,13 @@ public class DefenseController {
     }
 
     @GetMapping("/api/v1/defenses/{id}/result")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<DefenseResponse> getResult(@PathVariable Long id) {
         return ResponseEntity.ok(defenseService.getPublishedResult(id));
     }
 
     @GetMapping("/api/v1/students/{studentId}/result")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<DefenseResponse> getByStudent(@PathVariable Long studentId) {
         return ResponseEntity.ok(defenseService.getByStudent(studentId));
     }
@@ -167,7 +167,7 @@ public class DefenseController {
     }
 
     @GetMapping("/api/v1/defenses/available-jury-members")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<AvailableProfessorResponse>> getAvailableJuryMembers(
             HttpServletRequest request,
             @RequestParam String role,

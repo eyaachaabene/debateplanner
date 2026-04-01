@@ -319,9 +319,12 @@ export class LoginComponent implements OnInit {
     this.isLoading = true;
 
     this.authService.login(this.loginForm.getRawValue()).subscribe({
-      next: () => {
+      next: (response) => {
         this.isLoading = false;
-        this.router.navigate(['/dashboard']);
+
+        if (!response.mustChangePassword) {
+          this.router.navigate(['/dashboard']);
+        }
 
         this.snackBar.open(
           'Connexion réussie',

@@ -1,6 +1,7 @@
 package com.defensemanagement.academic.student.service.impl;
 
 import com.defensemanagement.academic.exception.ResourceNotFoundException;
+import com.defensemanagement.academic.client.AuthServiceClient;
 import com.defensemanagement.academic.student.dto.StudentRequest;
 import com.defensemanagement.academic.student.dto.StudentResponse;
 import com.defensemanagement.academic.student.entity.EMajor;
@@ -20,6 +21,7 @@ import java.util.List;
 public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
     private final StudentMapper studentMapper;
+    private final AuthServiceClient authServiceClient;
 
     @Override
     public StudentResponse create(StudentRequest request) {
@@ -27,7 +29,14 @@ public class StudentServiceImpl implements StudentService {
             throw new IllegalArgumentException("Email already exists: " + request.getEmail());
         }
 
+        Long userId = authServiceClient.registerUser(
+                request.getEmail(),
+                "ChangeMe123!",
+                "STUDENT"
+        );
+
         Student student = studentMapper.toEntity(request);
+        student.setUserId(userId);
         Student savedStudent = studentRepository.save(student);
         return studentMapper.toResponse(savedStudent);
     }

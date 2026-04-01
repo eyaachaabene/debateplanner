@@ -25,5 +25,11 @@ spring:
     error:
       include-message: never
 
+services:
+  auth-url: http://localhost:8085
+
+internal:
+  secret: MY_SUPER_SECRET_123
+
 server:
   port: 8082

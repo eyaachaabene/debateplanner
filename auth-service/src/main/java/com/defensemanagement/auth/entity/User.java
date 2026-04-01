@@ -39,6 +39,10 @@ public class User implements UserDetails {
     @Default
     private Set<Role> roles = new HashSet<>();
 
+    @Column(name = "must_change_password", nullable = false)
+    @Default
+    private boolean mustChangePassword = false;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()

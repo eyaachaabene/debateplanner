@@ -10,6 +10,7 @@ import { MOCK_USERS } from './mock-data';
 export class MockAuthService {
   private readonly ACCESS_TOKEN_KEY = 'access_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
+  private readonly AUTH_RESPONSE_KEY = 'auth_response';
 
   private currentUserSignal = signal<null>(null);
 
@@ -37,14 +38,14 @@ export class MockAuthService {
         accessToken,
         refreshToken: 'mock-refresh-token-' + Date.now(),
         tokenType: 'Bearer',
-        expiresIn: 3600
+        expiresIn: 3600,
+        mustChangePassword: false
       };
 
       return of(response).pipe(
         delay(500),
         tap(res => {
-          this.setAccessToken(res.accessToken);
-          this.setRefreshToken(res.refreshToken);
+          this.setAuthResponse(res);
         })
       );
     }
@@ -52,11 +53,46 @@ export class MockAuthService {
     return throwError(() => new Error('Nom d’utilisateur ou mot de passe incorrect')).pipe(delay(500));
   }
 
-  logout(): void {
+  refreshToken(): Observable<string> {
+    const authResponse = this.getStoredAuthResponse();
+
+    if (!authResponse) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    return of(authResponse.accessToken).pipe(delay(200));
+  }
+
+  changePassword(request: { currentPassword: string; newPassword: string }): Observable<void> {
+    const authResponse = this.getStoredAuthResponse();
+    const username = this.getUsername();
+
+    if (!authResponse || !username) {
+      return throwError(() => new Error('Not authenticated'));
+    }
+
+    const mockAuth = this.mockCredentials[username];
+
+    if (!mockAuth || mockAuth.password !== request.currentPassword) {
+      return throwError(() => new Error('Current password is incorrect'));
+    }
+
+    this.mockCredentials[username] = {
+      ...mockAuth,
+      password: request.newPassword
+    };
+
+    this.clearMustChangePasswordFlag();
+    return of(void 0).pipe(delay(300));
+  }
+
+  logout(): Observable<void> {
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    localStorage.removeItem(this.AUTH_RESPONSE_KEY);
     this.currentUserSignal.set(null);
     this.router.navigate(['/login']);
+    return of(void 0);
   }
 
   getAccessToken(): string | null {
@@ -69,6 +105,24 @@ export class MockAuthService {
 
   getRefreshToken(): string | null {
     return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
+  getStoredAuthResponse(): AuthResponse | null {
+    const rawResponse = localStorage.getItem(this.AUTH_RESPONSE_KEY);
+
+    if (!rawResponse) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(rawResponse) as AuthResponse;
+    } catch {
+      return null;
+    }
+  }
+
+  isPasswordChangeRequired(): boolean {
+    return this.getStoredAuthResponse()?.mustChangePassword ?? false;
   }
 
   hasRole(roles: Role[]): boolean {
@@ -120,6 +174,23 @@ export class MockAuthService {
 
   private setRefreshToken(token: string): void {
     localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
+  }
+
+  private setAuthResponse(response: AuthResponse): void {
+    this.setAccessToken(response.accessToken);
+    this.setRefreshToken(response.refreshToken);
+    localStorage.setItem(this.AUTH_RESPONSE_KEY, JSON.stringify(response));
+  }
+
+  private clearMustChangePasswordFlag(): void {
+    const storedResponse = this.getStoredAuthResponse();
+
+    if (!storedResponse) {
+      return;
+    }
+
+    storedResponse.mustChangePassword = false;
+    localStorage.setItem(this.AUTH_RESPONSE_KEY, JSON.stringify(storedResponse));
   }
 
   private buildMockJwt(username: string, role: Role): string {

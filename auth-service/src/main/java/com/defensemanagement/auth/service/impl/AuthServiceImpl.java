@@ -1,6 +1,7 @@
 package com.defensemanagement.auth.service.impl;
 
 import com.defensemanagement.auth.dto.AuthResponse;
+import com.defensemanagement.auth.dto.ChangePasswordRequest;
 import com.defensemanagement.auth.dto.LoginRequest;
 import com.defensemanagement.auth.dto.RefreshRequest;
 import com.defensemanagement.auth.dto.RegisterRequest;
@@ -38,19 +39,7 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Username already exists");
         }
 
-        Set<Role> roles = new HashSet<>();
-        if (request.getRoles() == null || request.getRoles().isEmpty()) {
-            Role studentRole = roleRepository.findByName(ERole.STUDENT)
-                    .orElseThrow(() -> new IllegalArgumentException("Role not found: STUDENT"));
-            roles.add(studentRole);
-        } else {
-            for (String roleName : request.getRoles()) {
-                ERole eRole = ERole.valueOf(roleName);
-                Role role = roleRepository.findByName(eRole)
-                        .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
-                roles.add(role);
-            }
-        }
+        Set<Role> roles = resolveRoles(request.getRoles());
 
         User user = User.builder()
                 .username(request.getUsername())
@@ -68,7 +57,28 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(900000)
+                .mustChangePassword(user.isMustChangePassword())
                 .build();
+    }
+
+    @Override
+    public Long registerAndGetId(String username, String rawPassword, String role) {
+        if (userRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("Username already exists: " + username);
+        }
+
+        ERole eRole = ERole.valueOf(role);
+        Role roleEntity = roleRepository.findByName(eRole)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + role));
+
+        User user = User.builder()
+                .username(username)
+                .password(passwordEncoder.encode(rawPassword))
+                .roles(Set.of(roleEntity))
+                .mustChangePassword(true)
+                .build();
+
+        return userRepository.save(user).getId();
     }
 
     @Override
@@ -91,7 +101,22 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(900000)
+                .mustChangePassword(user.isMustChangePassword())
                 .build();
+    }
+
+    @Override
+    public void changePassword(String username, ChangePasswordRequest request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setMustChangePassword(false);
+        userRepository.save(user);
     }
 
     @Override
@@ -116,11 +141,32 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(900000)
+            .mustChangePassword(user.isMustChangePassword())
                 .build();
     }
 
     @Override
     public void logout(String token) {
         // TODO: implement token blacklist
+    }
+
+    private Set<Role> resolveRoles(Set<String> roleNames) {
+        Set<Role> roles = new HashSet<>();
+
+        if (roleNames == null || roleNames.isEmpty()) {
+            Role studentRole = roleRepository.findByName(ERole.STUDENT)
+                    .orElseThrow(() -> new IllegalArgumentException("Role not found: STUDENT"));
+            roles.add(studentRole);
+            return roles;
+        }
+
+        for (String roleName : roleNames) {
+            ERole eRole = ERole.valueOf(roleName);
+            Role role = roleRepository.findByName(eRole)
+                    .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+            roles.add(role);
+        }
+
+        return roles;
     }
 }

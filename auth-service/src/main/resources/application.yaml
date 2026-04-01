@@ -32,3 +32,6 @@ application:
       secret-key: dGhpc2lzYXZlcnlzZWN1cmVzZWNyZXRrZXlmb3JqV1RhY2Nlc3N0b2tlbmdlbmVyYXRpb25hbGdvcml0aG0=
       access-token-expiration: 900000
       refresh-token-expiration: 604800000
+
+internal:
+  secret: MY_SUPER_SECRET_123

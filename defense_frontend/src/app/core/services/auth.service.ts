@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
 import { environment } from '@environments/environment';
-import { AuthResponse, LoginRequest, Role } from '../models';
+import { AuthResponse, ChangePasswordRequest, LoginRequest, Role } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +11,7 @@ import { AuthResponse, LoginRequest, Role } from '../models';
 export class AuthService {
   private readonly ACCESS_TOKEN_KEY = 'access_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
+  private readonly AUTH_RESPONSE_KEY = 'auth_response';
 
   private currentUserSignal = signal<null>(null);
 
@@ -25,9 +26,17 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, credentials).pipe(
       tap(response => {
-        this.setAccessToken(response.accessToken);
-        this.setRefreshToken(response.refreshToken);
+        this.setAuthResponse(response);
+        if (response.mustChangePassword) {
+          this.router.navigate(['/change-password']);
+        }
       })
+    );
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<void> {
+    return this.http.put<void>(`${environment.apiUrl}/auth/change-password`, request).pipe(
+      tap(() => this.clearMustChangePasswordFlag())
     );
   }
 
@@ -65,8 +74,7 @@ export class AuthService {
       .post<AuthResponse>(`${environment.apiUrl}/auth/refresh-token`, { refreshToken })
       .pipe(
         tap(response => {
-          this.setAccessToken(response.accessToken);
-          this.setRefreshToken(response.refreshToken);
+          this.setAuthResponse(response);
         }),
         map(response => response.accessToken)
       );
@@ -82,6 +90,24 @@ export class AuthService {
 
   getRefreshToken(): string | null {
     return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
+  getStoredAuthResponse(): AuthResponse | null {
+    const rawResponse = localStorage.getItem(this.AUTH_RESPONSE_KEY);
+
+    if (!rawResponse) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(rawResponse) as AuthResponse;
+    } catch {
+      return null;
+    }
+  }
+
+  isPasswordChangeRequired(): boolean {
+    return this.getStoredAuthResponse()?.mustChangePassword ?? false;
   }
 
   hasRole(roles: Role[]): boolean {
@@ -127,9 +153,27 @@ export class AuthService {
     localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
   }
 
+  private setAuthResponse(response: AuthResponse): void {
+    this.setAccessToken(response.accessToken);
+    this.setRefreshToken(response.refreshToken);
+    localStorage.setItem(this.AUTH_RESPONSE_KEY, JSON.stringify(response));
+  }
+
+  private clearMustChangePasswordFlag(): void {
+    const storedResponse = this.getStoredAuthResponse();
+
+    if (!storedResponse) {
+      return;
+    }
+
+    storedResponse.mustChangePassword = false;
+    localStorage.setItem(this.AUTH_RESPONSE_KEY, JSON.stringify(storedResponse));
+  }
+
   private clearSession(): void {
     localStorage.removeItem(this.ACCESS_TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    localStorage.removeItem(this.AUTH_RESPONSE_KEY);
     this.currentUserSignal.set(null);
   }
 }

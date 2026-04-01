@@ -33,27 +33,27 @@ public class ProfessorController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfessorResponse> getById(@PathVariable Long id) {
         ProfessorResponse response = professorService.getById(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfessorResponse> getByUserId(@PathVariable Long userId) {
         ProfessorResponse response = professorService.getByUserId(userId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfessorResponse> getMe(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(professorService.getCurrentProfessor(userId));
     }
 
     @GetMapping
-    @PreAuthorize("authenticated")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ProfessorResponse>> getAll() {
         List<ProfessorResponse> responses = professorService.getAll();
         return ResponseEntity.ok(responses);

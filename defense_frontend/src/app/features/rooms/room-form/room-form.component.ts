@@ -243,10 +243,14 @@ export class RoomFormComponent implements OnInit {
 
     this.isSubmitting.set(true);
     const formData = this.roomForm.value;
+    const payload = {
+      name: formData.name,
+      capacity: formData.capacity
+    };
 
     const request$ = this.isEditMode
-      ? this.roomService.update(this.roomId!, formData)
-      : this.roomService.create(formData);
+      ? this.roomService.update(this.roomId!, payload)
+      : this.roomService.create(payload);
 
     request$.subscribe({
       next: () => {

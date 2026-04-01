@@ -299,18 +299,20 @@ export class GradeFormComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    const grade = this.gradeForm.get('grade')?.value;
+    const payload = {
+      grade: this.gradeForm.get('grade')?.value
+    };
 
     let request$: Observable<any>;
 
     if (defense.presidentId === professor.id) {
-      request$ = this.defenseService.submitPresidentGrade(this.defenseId, grade);
+      request$ = this.defenseService.submitPresidentGrade(this.defenseId, payload.grade);
     } else if (defense.reviewerId === professor.id) {
-      request$ = this.defenseService.submitReviewerGrade(this.defenseId, grade);
+      request$ = this.defenseService.submitReviewerGrade(this.defenseId, payload.grade);
     } else if (defense.examinerId === professor.id) {
-      request$ = this.defenseService.submitExaminerGrade(this.defenseId, grade);
+      request$ = this.defenseService.submitExaminerGrade(this.defenseId, payload.grade);
     } else if (defense.supervisorId === professor.id) {
-      request$ = this.defenseService.submitSupervisorGrade(this.defenseId, grade);
+      request$ = this.defenseService.submitSupervisorGrade(this.defenseId, payload.grade);
     } else {
       this.isSubmitting.set(false);
       this.snackBar.open('Vous n’êtes pas membre du jury de cette soutenance', 'Fermer', { duration: 5000 });

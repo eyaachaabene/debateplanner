@@ -248,10 +248,13 @@ export class StudentFormComponent implements OnInit {
     request$.subscribe({
       next: () => {
         this.isSubmitting.set(false);
+        const successMessage = this.isEditMode
+          ? 'Étudiant mis à jour'
+          : `Étudiant créé avec succès. Identifiants : username = ${formData.email}, mot de passe temporaire = ChangeMe123! — Ils devront le modifier à la première connexion.`;
         this.snackBar.open(
-          this.isEditMode ? 'Étudiant mis à jour' : 'Étudiant créé',
+          successMessage,
           'Fermer',
-          { duration: 3000 }
+          { duration: this.isEditMode ? 3000 : 8000 }
         );
         this.goBack();
       },
