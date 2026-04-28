@@ -60,7 +60,7 @@ class AuthServiceImplTest {
     void setUp() {
         studentRole = new Role();
         studentRole.setId(1L);
-        studentRole.setName(ERole.ROLE_STUDENT);
+        studentRole.setName(ERole.STUDENT);
 
         user = User.builder()
                 .id(1L)
@@ -85,7 +85,7 @@ class AuthServiceImplTest {
     @Test
     void testRegisterSuccess() {
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
-        when(roleRepository.findByName(ERole.ROLE_STUDENT)).thenReturn(Optional.of(studentRole));
+        when(roleRepository.findByName(ERole.STUDENT)).thenReturn(Optional.of(studentRole));
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(jwtService.generateAccessToken(any(User.class))).thenReturn("accessToken");
@@ -100,7 +100,7 @@ class AuthServiceImplTest {
         assertEquals(900000, response.getExpiresIn());
 
         verify(userRepository).existsByUsername("testuser");
-        verify(roleRepository).findByName(ERole.ROLE_STUDENT);
+        verify(roleRepository).findByName(ERole.STUDENT);
         verify(userRepository).save(any(User.class));
     }
 
@@ -116,14 +116,14 @@ class AuthServiceImplTest {
     void testRegisterWithMultipleRoles() {
         Role adminRole = new Role();
         adminRole.setId(2L);
-        adminRole.setName(ERole.ROLE_ADMIN);
+        adminRole.setName(ERole.ADMIN);
 
         Set<String> roles = Set.of("ROLE_ADMIN", "ROLE_STUDENT");
         registerRequest.setRoles(roles);
 
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
-        when(roleRepository.findByName(ERole.ROLE_ADMIN)).thenReturn(Optional.of(adminRole));
-        when(roleRepository.findByName(ERole.ROLE_STUDENT)).thenReturn(Optional.of(studentRole));
+        when(roleRepository.findByName(ERole.ADMIN)).thenReturn(Optional.of(adminRole));
+        when(roleRepository.findByName(ERole.STUDENT)).thenReturn(Optional.of(studentRole));
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(jwtService.generateAccessToken(any(User.class))).thenReturn("accessToken");
@@ -132,15 +132,15 @@ class AuthServiceImplTest {
         AuthResponse response = authService.register(registerRequest);
 
         assertNotNull(response);
-        verify(roleRepository).findByName(ERole.ROLE_ADMIN);
-        verify(roleRepository).findByName(ERole.ROLE_STUDENT);
+        verify(roleRepository).findByName(ERole.ADMIN);
+        verify(roleRepository).findByName(ERole.STUDENT);
     }
 
     @Test
     void testRegisterRoleNotFound() {
         registerRequest.setRoles(Set.of("ROLE_ADMIN"));
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
-        when(roleRepository.findByName(ERole.ROLE_ADMIN)).thenReturn(Optional.empty());
+        when(roleRepository.findByName(ERole.ADMIN)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> authService.register(registerRequest));
     }

@@ -1,11 +1,11 @@
 package com.defensemanagement.defense.defense.controller;
 
-import com.defensemanagement.defense.client.AcademicClient;
 import com.defensemanagement.defense.defense.dto.AvailableProfessorResponse;
 import com.defensemanagement.defense.defense.dto.CheckConflictsRequest;
 import com.defensemanagement.defense.defense.dto.ConflictCheckResponse;
 import com.defensemanagement.defense.defense.dto.DefenseGradesResponse;
 import com.defensemanagement.defense.defense.dto.DefenseRequest;
+import com.defensemanagement.defense.defense.dto.DefenseRequestContext;
 import com.defensemanagement.defense.defense.dto.DefenseResponse;
 import com.defensemanagement.defense.defense.dto.DefenseStatus;
 import com.defensemanagement.defense.defense.dto.GradeRequest;
@@ -35,7 +35,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DefenseController {
     private final DefenseService defenseService;
-    private final AcademicClient academicClient;
 
     @GetMapping("/api/v1/defenses")
     @PreAuthorize("isAuthenticated()")
@@ -94,37 +93,29 @@ public class DefenseController {
 
     @PutMapping("/api/v1/defenses/{id}/grades/president")
     @PreAuthorize("hasAuthority('ROLE_PROFESSOR')")
-    public ResponseEntity<DefenseResponse> submitPresidentGrade(HttpServletRequest servletRequest,
-                                                               @PathVariable Long id,
+    public ResponseEntity<DefenseResponse> submitPresidentGrade(@PathVariable Long id,
                                                                @Valid @RequestBody GradeRequest request) {
-        ensureProfessorAssigned(servletRequest, id, "president");
         return ResponseEntity.ok(defenseService.submitPresidentGrade(id, request.getGrade()));
     }
 
     @PutMapping("/api/v1/defenses/{id}/grades/reviewer")
     @PreAuthorize("hasAuthority('ROLE_PROFESSOR')")
-    public ResponseEntity<DefenseResponse> submitReviewerGrade(HttpServletRequest servletRequest,
-                                                              @PathVariable Long id,
+    public ResponseEntity<DefenseResponse> submitReviewerGrade(@PathVariable Long id,
                                                               @Valid @RequestBody GradeRequest request) {
-        ensureProfessorAssigned(servletRequest, id, "reviewer");
         return ResponseEntity.ok(defenseService.submitReviewerGrade(id, request.getGrade()));
     }
 
     @PutMapping("/api/v1/defenses/{id}/grades/examiner")
     @PreAuthorize("hasAuthority('ROLE_PROFESSOR')")
-    public ResponseEntity<DefenseResponse> submitExaminerGrade(HttpServletRequest servletRequest,
-                                                              @PathVariable Long id,
+    public ResponseEntity<DefenseResponse> submitExaminerGrade(@PathVariable Long id,
                                                               @Valid @RequestBody GradeRequest request) {
-        ensureProfessorAssigned(servletRequest, id, "examiner");
         return ResponseEntity.ok(defenseService.submitExaminerGrade(id, request.getGrade()));
     }
 
     @PutMapping("/api/v1/defenses/{id}/grades/supervisor")
     @PreAuthorize("hasAuthority('ROLE_PROFESSOR')")
-    public ResponseEntity<DefenseResponse> submitSupervisorGrade(HttpServletRequest servletRequest,
-                                                                @PathVariable Long id,
+    public ResponseEntity<DefenseResponse> submitSupervisorGrade(@PathVariable Long id,
                                                                 @Valid @RequestBody GradeRequest request) {
-        ensureProfessorAssigned(servletRequest, id, "supervisor");
         return ResponseEntity.ok(defenseService.submitSupervisorGrade(id, request.getGrade()));
     }
 
@@ -178,29 +169,12 @@ public class DefenseController {
         return ResponseEntity.ok(defenseService.getAvailableJuryMembers(buildRequestContext(request), role, date, startTime, endTime, excludeDefenseId));
     }
 
-    private AcademicClient.RequestContext buildRequestContext(HttpServletRequest request) {
-        return AcademicClient.RequestContext.builder()
+    private DefenseRequestContext buildRequestContext(HttpServletRequest request) {
+        return DefenseRequestContext.builder()
                 .userId(request.getHeader("X-User-Id"))
                 .username(request.getHeader("X-User-Username"))
                 .roles(request.getHeader("X-User-Roles"))
                 .requestId(request.getHeader("X-Request-Id"))
                 .build();
-    }
-
-    private void ensureProfessorAssigned(HttpServletRequest request, Long defenseId, String role) {
-        Long professorId = academicClient.getCurrentProfessor(buildRequestContext(request)).getId();
-        DefenseResponse defense = defenseService.getById(defenseId);
-
-        boolean authorized = switch (role) {
-            case "president" -> professorId.equals(defense.getPresidentId());
-            case "reviewer" -> professorId.equals(defense.getReviewerId());
-            case "examiner" -> professorId.equals(defense.getExaminerId());
-            case "supervisor" -> professorId.equals(defense.getSupervisorId());
-            default -> false;
-        };
-
-        if (!authorized) {
-            throw new IllegalArgumentException("Current professor is not assigned as " + role + " for this defense");
-        }
     }
 }

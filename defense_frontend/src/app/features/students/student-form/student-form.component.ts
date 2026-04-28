@@ -66,16 +66,7 @@ import { LoadingSpinnerComponent } from '@shared/components';
               </div>
 
               <div class="form-row">
-                <mat-form-field appearance="outline">
-                  <mat-label>Email</mat-label>
-                  <input matInput formControlName="email" type="email" />
-                  @if (studentForm.get('email')?.hasError('required')) {
-                    <mat-error>L'email est requis</mat-error>
-                  }
-                  @if (studentForm.get('email')?.hasError('email')) {
-                    <mat-error>Format d'email invalide</mat-error>
-                  }
-                </mat-form-field>
+                
 
                 <mat-form-field appearance="outline">
                   <mat-label>Filière</mat-label>
@@ -88,9 +79,6 @@ import { LoadingSpinnerComponent } from '@shared/components';
                     <mat-error>La filière est requise</mat-error>
                   }
                 </mat-form-field>
-              </div>
-
-              <div class="form-row">
                 <mat-form-field appearance="outline">
                   <mat-label>Niveau</mat-label>
                   <input matInput formControlName="level" type="number" min="1" max="5" />
@@ -104,11 +92,23 @@ import { LoadingSpinnerComponent } from '@shared/components';
                     <mat-error>Le niveau maximum est 5</mat-error>
                   }
                 </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                
 
                 <mat-form-field appearance="outline">
-                  <mat-label>User ID (optionnel)</mat-label>
-                  <input matInput formControlName="userId" type="number" min="1" />
+                  <mat-label>Email</mat-label>
+                  <input matInput formControlName="email" type="email" />
+                  @if (studentForm.get('email')?.hasError('required')) {
+                    <mat-error>L'email est requis</mat-error>
+                  }
+                  @if (studentForm.get('email')?.hasError('email')) {
+                    <mat-error>Format d'email invalide</mat-error>
+                  }
                 </mat-form-field>
+
+                
               </div>
 
               <div class="actions">
@@ -180,7 +180,7 @@ export class StudentFormComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   studentForm: FormGroup = this.fb.group({
-    userId: [null],
+    userId: [null],  // ✅ Changed from 0 to null (same as professor)
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
@@ -233,6 +233,15 @@ export class StudentFormComponent implements OnInit {
 
   onSubmit(): void {
     if (this.studentForm.invalid) {
+      console.log('Form validation errors:', this.studentForm.errors);
+      console.log('Individual field errors:', {
+        userId: this.studentForm.get('userId')?.errors,
+        firstName: this.studentForm.get('firstName')?.errors,
+        lastName: this.studentForm.get('lastName')?.errors,
+        email: this.studentForm.get('email')?.errors,
+        major: this.studentForm.get('major')?.errors,
+        level: this.studentForm.get('level')?.errors
+      });
       this.studentForm.markAllAsTouched();
       return;
     }
@@ -240,28 +249,70 @@ export class StudentFormComponent implements OnInit {
     this.isSubmitting.set(true);
 
     const formData = this.studentForm.getRawValue();
-
+    
+    // ✅ CRITICAL: Log the exact data being sent
+    console.log('=== STUDENT FORM DATA ===');
+    console.log('Raw form data:', formData);
+    console.log('Type of major:', typeof formData.major, formData.major);
+    console.log('Type of level:', typeof formData.level, formData.level);
+    console.log('Type of userId:', typeof formData.userId, formData.userId);
+    
+    // ✅ Try sending WITHOUT userId field at all
+    const studentData = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      major: formData.major,
+      level: Number(formData.level) // Ensure it's a number
+    };
+    
+    console.log('=== FINAL PAYLOAD TO SEND ===');
+    console.log('Student data without userId:', studentData);
+    console.log('JSON string:', JSON.stringify(studentData));
+    
+    // ✅ Use the cleaned data without userId
     const request$ = this.isEditMode
-      ? this.studentService.update(this.studentId!, formData)
-      : this.studentService.create(formData);
+      ? this.studentService.update(this.studentId!, studentData)
+      : this.studentService.create(studentData);
 
     request$.subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Success response:', response);
         this.isSubmitting.set(false);
         const successMessage = this.isEditMode
           ? 'Étudiant mis à jour'
-          : `Étudiant créé avec succès. Identifiants : username = ${formData.email}, mot de passe temporaire = ChangeMe123! — Ils devront le modifier à la première connexion.`;
-        this.snackBar.open(
-          successMessage,
-          'Fermer',
-          { duration: this.isEditMode ? 3000 : 8000 }
-        );
+          : `Étudiant créé avec succès. Identifiants : username = ${formData.email}, mot de passe temporaire = ChangeMe123!`;
+        this.snackBar.open(successMessage, 'Fermer', { duration: this.isEditMode ? 3000 : 8000 });
         this.goBack();
       },
       error: (error) => {
+        console.error('=== ERROR DETAILS ===');
+        console.error('Status:', error.status);
+        console.error('Status Text:', error.statusText);
+        console.error('Error object:', error);
+        
+        // Try to get the actual error message from backend
+        if (error.error) {
+          if (typeof error.error === 'string') {
+            console.error('Error body (string):', error.error);
+            try {
+              const parsed = JSON.parse(error.error);
+              console.error('Parsed error:', parsed);
+              // Show detailed validation errors
+              if (parsed.errors) {
+                console.error('Validation errors:', parsed.errors);
+              }
+            } catch(e) {
+              console.error('Could not parse error as JSON');
+            }
+          } else {
+            console.error('Error body (object):', JSON.stringify(error.error, null, 2));
+          }
+        }
+        
         this.isSubmitting.set(false);
         this.snackBar.open(
-          error?.error?.message || 'Une erreur est survenue',
+          error?.error?.message || error?.message || 'Une erreur est survenue',
           'Fermer',
           { duration: 5000 }
         );

@@ -29,7 +29,7 @@ class UserRepositoryTest {
     void setUp() {
         studentRole = new Role();
         studentRole.setId(1L);
-        studentRole.setName(ERole.ROLE_STUDENT);
+        studentRole.setName(ERole.STUDENT);
 
         testUser = User.builder()
                 .id(1L)
@@ -100,7 +100,7 @@ class UserRepositoryTest {
     void testUserWithMultipleRoles() {
         Role adminRole = new Role();
         adminRole.setId(2L);
-        adminRole.setName(ERole.ROLE_ADMIN);
+        adminRole.setName(ERole.ADMIN);
 
         User adminUser = User.builder()
                 .id(2L)

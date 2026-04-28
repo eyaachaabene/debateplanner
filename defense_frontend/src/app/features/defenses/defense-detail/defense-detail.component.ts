@@ -7,8 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DefenseService } from '@core/services';
+import { ProfessorService } from '@core/services/professor.service';
+import { StudentService } from '@core/services/student.service';
 import { Defense } from '@core/models';
 import { StatusBadgeComponent, LoadingSpinnerComponent } from '@shared/components';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-defense-detail',
@@ -32,132 +35,132 @@ import { StatusBadgeComponent, LoadingSpinnerComponent } from '@shared/component
         <h1>Détails de la soutenance</h1>
       </div>
 
-@if (isLoading()) {
-  <app-loading-spinner message="Chargement..."></app-loading-spinner>
-} @else {
-  @if (defense(); as currentDefense) {
-    <div class="detail-grid">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Informations générales</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="info-row">
-            <span class="label">Projet</span>
-            <span class="value">{{ currentDefense.projectTitle }}</span>
+      @if (isLoading()) {
+        <app-loading-spinner message="Chargement..."></app-loading-spinner>
+      } @else {
+        @if (defense(); as currentDefense) {
+          <div class="detail-grid">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Informations générales</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="info-row">
+                  <span class="label">Projet</span>
+                  <span class="value">{{ currentDefense.projectTitle }}</span>
+                </div>
+                <mat-divider></mat-divider>
+
+                <div class="info-row">
+                  <span class="label">Statut</span>
+                  <app-status-badge type="status" [status]="currentDefense.status"></app-status-badge>
+                </div>
+                <mat-divider></mat-divider>
+
+                <div class="info-row">
+                  <span class="label">Date</span>
+                  <span class="value">{{ currentDefense.defenseDate | date:'EEEE dd MMMM yyyy':'':'fr' }}</span>
+                </div>
+                <mat-divider></mat-divider>
+
+                <div class="info-row">
+                  <span class="label">Horaire</span>
+                  <span class="value">{{ currentDefense.startTime }} - {{ currentDefense.endTime }}</span>
+                </div>
+                <mat-divider></mat-divider>
+
+                <div class="info-row">
+                  <span class="label">Salle</span>
+                  <span class="value">Salle #{{ currentDefense.roomId }}</span>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Références</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="info-row">
+                  <span class="label">Étudiant</span>
+                  <span class="value">{{ getStudentName(currentDefense.studentId) }}</span>
+                </div>
+                <mat-divider></mat-divider>
+
+                <div class="info-row">
+                  <span class="label">Encadrant</span>
+                  <span class="value">{{ getProfessorName(currentDefense.supervisorId) }}</span>
+                </div>
+                <mat-divider></mat-divider>
+
+                <div class="info-row">
+                  <span class="label">Président</span>
+                  <span class="value">{{ getProfessorName(currentDefense.presidentId) }}</span>
+                </div>
+                <mat-divider></mat-divider>
+
+                <div class="info-row">
+                  <span class="label">Rapporteur</span>
+                  <span class="value">{{ getProfessorName(currentDefense.reviewerId) }}</span>
+                </div>
+                <mat-divider></mat-divider>
+
+                <div class="info-row">
+                  <span class="label">Examinateur</span>
+                  <span class="value">{{ getProfessorName(currentDefense.examinerId) }}</span>
+                </div>
+              </mat-card-content>
+            </mat-card>
+
+            @if (currentDefense.status === 'PUBLISHED') {
+              <mat-card class="results-card">
+                <mat-card-header>
+                  <mat-card-title>Résultats</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="info-row">
+                    <span class="label">Moyenne finale</span>
+                    <span class="value">{{ currentDefense.finalAverage ?? '-' }}/20</span>
+                  </div>
+                  <mat-divider></mat-divider>
+
+                  <div class="info-row">
+                    <span class="label">Mention</span>
+                    <app-status-badge
+                      type="mention"
+                      [mention]="currentDefense.mention!"
+                    ></app-status-badge>
+                  </div>
+                  <mat-divider></mat-divider>
+
+                  <div class="info-row">
+                    <span class="label">Note encadrant</span>
+                    <span class="value">{{ currentDefense.supervisorGrade ?? '-' }}/20</span>
+                  </div>
+                  <mat-divider></mat-divider>
+
+                  <div class="info-row">
+                    <span class="label">Note président</span>
+                    <span class="value">{{ currentDefense.presidentGrade ?? '-' }}/20</span>
+                  </div>
+                  <mat-divider></mat-divider>
+
+                  <div class="info-row">
+                    <span class="label">Note rapporteur</span>
+                    <span class="value">{{ currentDefense.reviewerGrade ?? '-' }}/20</span>
+                  </div>
+                  <mat-divider></mat-divider>
+
+                  <div class="info-row">
+                    <span class="label">Note examinateur</span>
+                    <span class="value">{{ currentDefense.examinerGrade ?? '-' }}/20</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            }
           </div>
-          <mat-divider></mat-divider>
-
-          <div class="info-row">
-            <span class="label">Statut</span>
-            <app-status-badge type="status" [status]="currentDefense.status"></app-status-badge>
-          </div>
-          <mat-divider></mat-divider>
-
-          <div class="info-row">
-            <span class="label">Date</span>
-            <span class="value">{{ currentDefense.defenseDate | date:'EEEE dd MMMM yyyy':'':'fr' }}</span>
-          </div>
-          <mat-divider></mat-divider>
-
-          <div class="info-row">
-            <span class="label">Horaire</span>
-            <span class="value">{{ currentDefense.startTime }} - {{ currentDefense.endTime }}</span>
-          </div>
-          <mat-divider></mat-divider>
-
-          <div class="info-row">
-            <span class="label">Salle</span>
-            <span class="value">Salle #{{ currentDefense.roomId }}</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Références</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="info-row">
-            <span class="label">Étudiant</span>
-            <span class="value">Étudiant #{{ currentDefense.studentId }}</span>
-          </div>
-          <mat-divider></mat-divider>
-
-          <div class="info-row">
-            <span class="label">Encadrant</span>
-            <span class="value">Professeur #{{ currentDefense.supervisorId }}</span>
-          </div>
-          <mat-divider></mat-divider>
-
-          <div class="info-row">
-            <span class="label">Président</span>
-            <span class="value">Professeur #{{ currentDefense.presidentId }}</span>
-          </div>
-          <mat-divider></mat-divider>
-
-          <div class="info-row">
-            <span class="label">Rapporteur</span>
-            <span class="value">Professeur #{{ currentDefense.reviewerId }}</span>
-          </div>
-          <mat-divider></mat-divider>
-
-          <div class="info-row">
-            <span class="label">Examinateur</span>
-            <span class="value">Professeur #{{ currentDefense.examinerId }}</span>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      @if (currentDefense.status === 'PUBLISHED') {
-        <mat-card class="results-card">
-          <mat-card-header>
-            <mat-card-title>Résultats</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="info-row">
-              <span class="label">Moyenne finale</span>
-              <span class="value">{{ currentDefense.finalAverage ?? '-' }}/20</span>
-            </div>
-            <mat-divider></mat-divider>
-
-            <div class="info-row">
-              <span class="label">Mention</span>
-              <app-status-badge
-                type="mention"
-                [mention]="currentDefense.mention!"
-              ></app-status-badge>
-            </div>
-            <mat-divider></mat-divider>
-
-            <div class="info-row">
-              <span class="label">Note encadrant</span>
-              <span class="value">{{ currentDefense.supervisorGrade ?? '-' }}/20</span>
-            </div>
-            <mat-divider></mat-divider>
-
-            <div class="info-row">
-              <span class="label">Note président</span>
-              <span class="value">{{ currentDefense.presidentGrade ?? '-' }}/20</span>
-            </div>
-            <mat-divider></mat-divider>
-
-            <div class="info-row">
-              <span class="label">Note rapporteur</span>
-              <span class="value">{{ currentDefense.reviewerGrade ?? '-' }}/20</span>
-            </div>
-            <mat-divider></mat-divider>
-
-            <div class="info-row">
-              <span class="label">Note examinateur</span>
-              <span class="value">{{ currentDefense.examinerGrade ?? '-' }}/20</span>
-            </div>
-          </mat-card-content>
-        </mat-card>
+        }
       }
-    </div>
-  }
-}
     </div>
   `,
   styles: [`
@@ -217,6 +220,8 @@ import { StatusBadgeComponent, LoadingSpinnerComponent } from '@shared/component
 })
 export class DefenseDetailComponent implements OnInit {
   private readonly defenseService = inject(DefenseService);
+  private readonly professorService = inject(ProfessorService);
+  private readonly studentService = inject(StudentService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
@@ -227,13 +232,30 @@ export class DefenseDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.loadDefense(+id);
+      this.loadInitialData(+id);
     }
   }
 
-  private loadDefense(id: number): void {
+  private loadInitialData(id: number): void {
     this.isLoading.set(true);
 
+    // Load all professors and students in parallel
+    forkJoin({
+      professors: this.professorService.loadAllProfessors(),
+      students: this.studentService.loadAllStudents()
+    }).subscribe({
+      next: () => {
+        this.loadDefense(id);
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.snackBar.open('Erreur lors du chargement des données', 'Fermer', { duration: 5000 });
+        this.goBack();
+      }
+    });
+  }
+
+  private loadDefense(id: number): void {
     this.defenseService.getById(id).subscribe({
       next: (defense) => {
         this.defense.set(defense);
@@ -245,6 +267,15 @@ export class DefenseDetailComponent implements OnInit {
         this.goBack();
       }
     });
+  }
+
+  // Use synchronous methods from cache
+  getProfessorName(id: number): string {
+    return this.professorService.getProfessorNameFromCache(id);
+  }
+
+  getStudentName(id: number): string {
+    return this.studentService.getStudentNameFromCache(id);
   }
 
   goBack(): void {

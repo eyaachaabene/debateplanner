@@ -38,7 +38,7 @@ class JwtServiceTest {
     void setUp() {
         Role role = new Role();
         role.setId(1L);
-        role.setName(ERole.ROLE_STUDENT);
+        role.setName(ERole.STUDENT);
 
         testUser = User.builder()
                 .id(1L)
@@ -106,7 +106,7 @@ class JwtServiceTest {
     void testAccessTokenContainsRoles() {
         Role adminRole = new Role();
         adminRole.setId(2L);
-        adminRole.setName(ERole.ROLE_ADMIN);
+        adminRole.setName(ERole.ADMIN);
 
         User userWithRoles = User.builder()
                 .id(1L)

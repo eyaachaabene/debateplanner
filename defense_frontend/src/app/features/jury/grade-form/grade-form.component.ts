@@ -15,10 +15,18 @@ import { DefenseService, ProfessorService } from '@core/services';
 import { Defense, Professor } from '@core/models';
 import { LoadingSpinnerComponent } from '@shared/components';
 import { Observable } from 'rxjs';
+import { NgModule, LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+
+registerLocaleData(localeFr);
 
 @Component({
   selector: 'app-grade-form',
   standalone: true,
+  providers: [
+    { provide: LOCALE_ID, useValue: 'fr' } // or 'fr-FR' for the specific region
+  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -107,22 +115,7 @@ import { Observable } from 'rxjs';
                   </div>
                 </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Commentaires</mat-label>
-                  <textarea
-                    matInput
-                    formControlName="comments"
-                    rows="6"
-                    placeholder="Commentaires internes éventuels"
-                  ></textarea>
-                  <mat-hint>Minimum 10 caractères</mat-hint>
-                  @if (gradeForm.get('comments')?.hasError('required')) {
-                    <mat-error>Les commentaires sont requis</mat-error>
-                  }
-                  @if (gradeForm.get('comments')?.hasError('minlength')) {
-                    <mat-error>Minimum 10 caractères requis</mat-error>
-                  }
-                </mat-form-field>
+                
 
                 <div class="actions">
                   <button mat-button type="button" (click)="goBack()">Annuler</button>
@@ -130,7 +123,7 @@ import { Observable } from 'rxjs';
                     mat-flat-button
                     color="primary"
                     type="submit"
-                    [disabled]="gradeForm.invalid || isSubmitting()"
+                    [disabled]=" isSubmitting()"
                   >
                     @if (isSubmitting()) {
                       <mat-spinner diameter="20"></mat-spinner>
@@ -248,8 +241,7 @@ export class GradeFormComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   gradeForm: FormGroup = this.fb.group({
-    grade: [14, [Validators.required, Validators.min(0), Validators.max(20)]],
-    comments: ['', [Validators.required, Validators.minLength(10)]]
+    grade: [14, [Validators.required, Validators.min(0), Validators.max(20)]]
   });
 
   defense = signal<Defense | null>(null);
@@ -288,7 +280,7 @@ export class GradeFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.gradeForm.invalid || !this.defenseId) return;
+    if (!this.defenseId) return;
 
     const professor = this.currentProfessor();
     const defense = this.defense();
@@ -299,34 +291,35 @@ export class GradeFormComponent implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    const payload = {
-      grade: this.gradeForm.get('grade')?.value
-    };
+    const gradeValue = this.gradeForm.get('grade')?.value;
 
     let request$: Observable<any>;
 
     if (defense.presidentId === professor.id) {
-      request$ = this.defenseService.submitPresidentGrade(this.defenseId, payload.grade);
+      request$ = this.defenseService.submitPresidentGrade(this.defenseId, gradeValue);
     } else if (defense.reviewerId === professor.id) {
-      request$ = this.defenseService.submitReviewerGrade(this.defenseId, payload.grade);
+      request$ = this.defenseService.submitReviewerGrade(this.defenseId, gradeValue);
     } else if (defense.examinerId === professor.id) {
-      request$ = this.defenseService.submitExaminerGrade(this.defenseId, payload.grade);
+      request$ = this.defenseService.submitExaminerGrade(this.defenseId, gradeValue);
     } else if (defense.supervisorId === professor.id) {
-      request$ = this.defenseService.submitSupervisorGrade(this.defenseId, payload.grade);
+      request$ = this.defenseService.submitSupervisorGrade(this.defenseId, gradeValue);
     } else {
       this.isSubmitting.set(false);
-      this.snackBar.open('Vous n’êtes pas membre du jury de cette soutenance', 'Fermer', { duration: 5000 });
+      this.snackBar.open('Vous n\'êtes pas membre du jury de cette soutenance', 'Fermer', { duration: 5000 });
       return;
     }
 
     request$.subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.snackBar.open('Note soumise avec succès', 'Fermer', { duration: 3000 });
-        this.goBack();
+        const snackBarRef = this.snackBar.open('Note soumise avec succès', 'Fermer', { duration: 2000 });
+        snackBarRef.afterDismissed().subscribe(() => {
+          this.goBack();
+        });
       },
-      error: (error: { error: { message: any; }; }) => {
+      error: (error) => {
         this.isSubmitting.set(false);
+        console.error('Grade submission error:', error);
         this.snackBar.open(
           error?.error?.message || 'Erreur lors de la soumission',
           'Fermer',
@@ -337,6 +330,8 @@ export class GradeFormComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/dashboard/jury']);
+    this.router.navigate(['/dashboard/jury'], { 
+      queryParams: { fromGrade: true }
+    });
   }
 }

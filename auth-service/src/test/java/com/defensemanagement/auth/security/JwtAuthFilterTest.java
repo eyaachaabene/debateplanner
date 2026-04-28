@@ -53,7 +53,7 @@ class JwtAuthFilterTest {
 
         Role role = new Role();
         role.setId(1L);
-        role.setName(ERole.ROLE_STUDENT);
+        role.setName(ERole.STUDENT);
 
         testUser = User.builder()
                 .id(1L)
