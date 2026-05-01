@@ -12,7 +12,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create          # never use create/update in anything beyond first run
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
