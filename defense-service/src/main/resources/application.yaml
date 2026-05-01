@@ -2,6 +2,12 @@ spring:
   application:
     name: defense-service
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 52MB
+
   profiles:
     active: dev
 
@@ -38,3 +44,7 @@ application:
   security:
     jwt:
       secret-key: dGhpc2lzYXZlcnlzZWN1cmVzZWNyZXRrZXlmb3JqV1RhY2Nlc3N0b2tlbmdlbmVyYXRpb25hbGdvcml0aG0=
+
+report:
+  upload:
+    dir: ${REPORT_UPLOAD_DIR:uploads/reports}

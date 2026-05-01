@@ -276,7 +276,7 @@ export class MyDefenseComponent implements OnInit {
 
     this.studentService.getMe().subscribe({
       next: (student) => {
-        this.defenseService.getByStudent(student.id).subscribe({
+        this.defenseService.getMyResult().subscribe({
           next: (defense) => {
             this.defense.set(defense);
             this.isLoading.set(false);

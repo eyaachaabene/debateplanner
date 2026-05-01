@@ -62,3 +62,13 @@ export interface DefenseGrades {
   finalAverage?: number;
   mention?: Mention;
 }
+
+export interface ReportMetadata {
+  id: number;
+  defenseId: number;
+  originalFilename: string;
+  contentType: string;
+  fileSize: number;
+  uploadedAt: string;
+  uploadedBy: string;
+}

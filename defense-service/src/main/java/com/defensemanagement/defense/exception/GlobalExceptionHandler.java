@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -68,5 +69,16 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        ApiError apiError = ApiError.builder()
+            .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+            .message("File size exceeds the maximum allowed limit (50 MB)")
+            .timestamp(LocalDateTime.now())
+            .errors(null)
+            .build();
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(apiError);
     }
 }

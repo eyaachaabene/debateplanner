@@ -8,6 +8,7 @@ import {
   CheckConflictsRequest,
   JuryAssignmentRequest,
   DefenseGrades
+  , ReportMetadata
 } from '../models';
 import { DefenseStatus } from '../models/enums';
 
@@ -111,5 +112,23 @@ export class DefenseService {
     }
     console.log('Fetching jury defenses with status:', status);
     return this.http.get<Defense[]>(this.juryApiUrl, { params });
+  }
+
+  uploadReport(defenseId: number, file: File): Observable<ReportMetadata> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<ReportMetadata>(`${this.apiUrl}/${defenseId}/report`, form);
+  }
+
+  getReportMetadata(defenseId: number): Observable<ReportMetadata> {
+    return this.http.get<ReportMetadata>(`${this.apiUrl}/${defenseId}/report`);
+  }
+
+  downloadReport(defenseId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${defenseId}/report/download`, { responseType: 'blob' });
+  }
+
+  deleteReport(defenseId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${defenseId}/report`);
   }
 }

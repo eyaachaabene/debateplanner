@@ -180,6 +180,7 @@ export class DashboardComponent {
     { icon: 'assessment', label: 'Résultats', route: '/dashboard/results', roles: [Role.ADMIN] },
     { icon: 'gavel', label: 'Mes jurys', route: '/dashboard/jury', roles: [Role.PROFESSOR] },
     { icon: 'school', label: 'Ma soutenance', route: '/dashboard/my-defense', roles: [Role.STUDENT] },
+    { icon: 'upload_file', label: 'Mon rapport', route: '/dashboard/upload-report', roles: [Role.STUDENT] },
     { icon: 'grade', label: 'Mes résultats', route: '/dashboard/my-results', roles: [Role.STUDENT] }
   ];
 

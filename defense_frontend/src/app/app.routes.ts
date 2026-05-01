@@ -134,6 +134,13 @@ export const routes: Routes = [
         canActivate: [mustChangePasswordGuard, roleGuard],
         data: { roles: [Role.STUDENT] }
       },
+      {
+        path: 'upload-report',
+        loadComponent: () => import('./features/student-view/upload-report/upload-report.component')
+          .then(m => m.UploadReportComponent),
+        canActivate: [mustChangePasswordGuard, roleGuard],
+        data: { roles: [Role.STUDENT] }
+      },
       // Results (Admin view)
       {
         path: 'results',
