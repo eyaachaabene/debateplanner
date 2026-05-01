@@ -7,8 +7,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/room_db
-    username: myuser
-    password: mypassword
+    username: ${DB_USER:room_user}
+    password: ${DB_PASS:room_pass}
 
   jpa:
     open-in-view: false

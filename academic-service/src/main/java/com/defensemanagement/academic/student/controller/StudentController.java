@@ -30,6 +30,7 @@ public class StudentController {
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<StudentResponse> create(@Valid @RequestBody StudentRequest request) {
+        System.out.println("Received request to create student: " + request);
         StudentResponse response = studentService.create(request);
         return ResponseEntity.status(201).body(response);
     }

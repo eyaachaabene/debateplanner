@@ -1,7 +1,6 @@
 package com.defensemanagement.academic.professor.service.impl;
 
 import com.defensemanagement.academic.exception.ResourceNotFoundException;
-import com.defensemanagement.academic.client.AuthServiceClient;
 import com.defensemanagement.academic.professor.dto.ProfessorRequest;
 import com.defensemanagement.academic.professor.dto.ProfessorResponse;
 import com.defensemanagement.academic.professor.entity.Professor;
@@ -20,22 +19,21 @@ import java.util.List;
 public class ProfessorServiceImpl implements ProfessorService {
     private final ProfessorRepository professorRepository;
     private final ProfessorMapper professorMapper;
-    private final AuthServiceClient authServiceClient;
 
     @Override
     public ProfessorResponse create(ProfessorRequest request) {
+        if (request.getUserId() == null) {
+            throw new IllegalArgumentException("userId is required to create a professor");
+        }
         if (professorRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists: " + request.getEmail());
         }
-
-        Long userId = authServiceClient.registerUser(
-                request.getEmail(),
-                "ChangeMe123!",
-                "PROFESSOR"
-        );
+        if (professorRepository.existsByUserId(request.getUserId())) {
+            throw new IllegalArgumentException("User is already linked to a professor: " + request.getUserId());
+        }
 
         Professor professor = professorMapper.toEntity(request);
-        professor.setUserId(userId);
+        professor.setUserId(request.getUserId());
         Professor savedProfessor = professorRepository.save(professor);
         return professorMapper.toResponse(savedProfessor);
     }

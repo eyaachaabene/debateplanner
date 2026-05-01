@@ -10,6 +10,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { DefenseService, ProfessorService } from '@core/services';
 import { Defense, Professor } from '@core/models';
 import { StatusBadgeComponent, LoadingSpinnerComponent, EmptyStateComponent } from '@shared/components';
+import { ActivatedRoute, Router } from '@angular/router';
+
 
 @Component({
   selector: 'app-jury-dashboard',
@@ -265,6 +267,10 @@ export class JuryDashboardComponent implements OnInit {
   private readonly defenseService = inject(DefenseService);
   private readonly professorService = inject(ProfessorService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+
 
   allDefenses = signal<Defense[]>([]);
   currentProfessor = signal<Professor | null>(null);
@@ -289,6 +295,19 @@ export class JuryDashboardComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    // Check if we're coming from grade form
+    const fromGrade = this.route.snapshot.queryParamMap.get('fromGrade');
+    
+    if (fromGrade === 'true') {
+      console.log('Coming from grade form, skipping reload');
+      // Clear the query param
+      this.router.navigate(['/dashboard/jury'], { 
+        queryParams: { fromGrade: null },
+        replaceUrl: true 
+      });
+      return;
+    }
+    
     this.loadMyJuryDefenses();
   }
 
@@ -298,12 +317,15 @@ export class JuryDashboardComponent implements OnInit {
     this.professorService.getMe().subscribe({
       next: (professor) => {
         this.currentProfessor.set(professor);
+        console.log('Current professor:', professor);
 
         this.defenseService.getJuryDefenses().subscribe({
           next: (defenses) => {
+            console.log('All jury defenses:', defenses);
             const mine = defenses.filter(d =>
               [d.supervisorId, d.presidentId, d.reviewerId, d.examinerId].includes(professor.id)
             );
+            console.log('My jury defenses:', mine);
             this.allDefenses.set(mine);
             this.isLoading.set(false);
           },

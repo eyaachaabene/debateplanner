@@ -1,9 +1,8 @@
 package com.defensemanagement.defense.defense.service.impl;
 
-import com.defensemanagement.defense.client.AcademicClient;
-import com.defensemanagement.defense.client.RoomClient;
 import com.defensemanagement.defense.defense.dto.CheckConflictsRequest;
 import com.defensemanagement.defense.defense.dto.DefenseRequest;
+import com.defensemanagement.defense.defense.dto.DefenseRequestContext;
 import com.defensemanagement.defense.defense.dto.DefenseResponse;
 import com.defensemanagement.defense.defense.dto.JuryDashboardStatus;
 import com.defensemanagement.defense.defense.entity.Defense;
@@ -44,19 +43,13 @@ class DefenseServiceImplTest {
     @Mock
     private DefenseMapper defenseMapper;
 
-    @Mock
-    private AcademicClient academicClient;
-
-    @Mock
-    private RoomClient roomClient;
-
     @InjectMocks
     private DefenseServiceImpl defenseService;
 
     private DefenseRequest defenseRequest;
     private Defense defense;
     private DefenseResponse defenseResponse;
-    private AcademicClient.RequestContext requestContext;
+    private DefenseRequestContext requestContext;
 
     @BeforeEach
     void setUp() {
@@ -102,7 +95,7 @@ class DefenseServiceImplTest {
                 .roomId(defenseRequest.getRoomId())
                 .build();
 
-        requestContext = AcademicClient.RequestContext.builder()
+        requestContext = DefenseRequestContext.builder()
                 .userId("7")
                 .username("admin")
                 .roles("ROLE_ADMIN")
@@ -113,12 +106,6 @@ class DefenseServiceImplTest {
     @Test
     void testCreateSuccess() {
         when(defenseRepository.findByDefenseDate(defenseRequest.getDefenseDate())).thenReturn(List.of());
-        doNothing().when(academicClient).ensureStudentExists(defenseRequest.getStudentId(), requestContext);
-        doNothing().when(academicClient).ensureProfessorExists(defenseRequest.getSupervisorId(), requestContext);
-        doNothing().when(academicClient).ensureProfessorExists(defenseRequest.getPresidentId(), requestContext);
-        doNothing().when(academicClient).ensureProfessorExists(defenseRequest.getReviewerId(), requestContext);
-        doNothing().when(academicClient).ensureProfessorExists(defenseRequest.getExaminerId(), requestContext);
-        doNothing().when(roomClient).ensureRoomExists(defenseRequest.getRoomId(), requestContext);
         when(defenseMapper.toEntity(defenseRequest)).thenReturn(defense);
         when(defenseRepository.save(defense)).thenReturn(defense);
         when(defenseMapper.toResponse(defense)).thenReturn(defenseResponse);
@@ -146,12 +133,6 @@ class DefenseServiceImplTest {
                 .roomId(defenseRequest.getRoomId())
                 .build();
         when(defenseRepository.findByDefenseDate(defenseRequest.getDefenseDate())).thenReturn(List.of(conflictingDefense));
-        doNothing().when(academicClient).ensureStudentExists(defenseRequest.getStudentId(), requestContext);
-        doNothing().when(academicClient).ensureProfessorExists(defenseRequest.getSupervisorId(), requestContext);
-        doNothing().when(academicClient).ensureProfessorExists(defenseRequest.getPresidentId(), requestContext);
-        doNothing().when(academicClient).ensureProfessorExists(defenseRequest.getReviewerId(), requestContext);
-        doNothing().when(academicClient).ensureProfessorExists(defenseRequest.getExaminerId(), requestContext);
-        doNothing().when(roomClient).ensureRoomExists(defenseRequest.getRoomId(), requestContext);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> defenseService.create(defenseRequest, requestContext));
@@ -269,10 +250,6 @@ class DefenseServiceImplTest {
                 .build();
         defense.setSupervisorGrade(null);
 
-        AcademicClient.CurrentProfessorResponse professor = new AcademicClient.CurrentProfessorResponse();
-        professor.setId(2L);
-
-        when(academicClient.getCurrentProfessor(requestContext)).thenReturn(professor);
         when(defenseRepository.findAllByOrderByDefenseDateAscStartTimeAsc()).thenReturn(List.of(defense, otherDefense));
         when(defenseMapper.toResponse(defense)).thenReturn(defenseResponse);
 

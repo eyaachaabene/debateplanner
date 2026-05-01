@@ -1,12 +1,11 @@
 package com.defensemanagement.defense.defense.service.impl;
 
-import com.defensemanagement.defense.client.AcademicClient;
-import com.defensemanagement.defense.client.RoomClient;
 import com.defensemanagement.defense.defense.dto.AvailableProfessorResponse;
 import com.defensemanagement.defense.defense.dto.CheckConflictsRequest;
 import com.defensemanagement.defense.defense.dto.ConflictCheckResponse;
 import com.defensemanagement.defense.defense.dto.DefenseGradesResponse;
 import com.defensemanagement.defense.defense.dto.DefenseRequest;
+import com.defensemanagement.defense.defense.dto.DefenseRequestContext;
 import com.defensemanagement.defense.defense.dto.DefenseResponse;
 import com.defensemanagement.defense.defense.dto.JuryAssignmentRequest;
 import com.defensemanagement.defense.defense.dto.JuryDashboardStatus;
@@ -35,12 +34,10 @@ import java.util.stream.Collectors;
 public class DefenseServiceImpl implements DefenseService {
     private final DefenseRepository defenseRepository;
     private final DefenseMapper defenseMapper;
-    private final AcademicClient academicClient;
-    private final RoomClient roomClient;
 
     @Override
-    public DefenseResponse create(DefenseRequest request, AcademicClient.RequestContext requestContext) {
-        validateDefenseRequest(request, null, requestContext);
+    public DefenseResponse create(DefenseRequest request, DefenseRequestContext requestContext) {
+        validateDefenseRequest(request, null);
         return defenseMapper.toResponse(defenseRepository.save(defenseMapper.toEntity(request)));
     }
 
@@ -69,13 +66,13 @@ public class DefenseServiceImpl implements DefenseService {
     }
 
     @Override
-    public DefenseResponse update(Long id, DefenseRequest request, AcademicClient.RequestContext requestContext) {
+    public DefenseResponse update(Long id, DefenseRequest request, DefenseRequestContext requestContext) {
         Defense defense = getDefenseEntity(id);
         if (defense.getStatus() == DefenseStatus.PUBLISHED) {
             throw new IllegalArgumentException("Published defense cannot be updated");
         }
 
-        validateDefenseRequest(request, id, requestContext);
+        validateDefenseRequest(request, id);
         defenseMapper.updateEntityFromRequest(request, defense);
         return defenseMapper.toResponse(defenseRepository.save(defense));
     }
@@ -113,17 +110,13 @@ public class DefenseServiceImpl implements DefenseService {
     }
 
     @Override
-    public JuryAssignmentRequest updateJury(Long id, JuryAssignmentRequest request, AcademicClient.RequestContext requestContext) {
+    public JuryAssignmentRequest updateJury(Long id, JuryAssignmentRequest request, DefenseRequestContext requestContext) {
         Defense defense = getDefenseEntity(id);
         if (defense.getStatus() == DefenseStatus.PUBLISHED) {
             throw new IllegalArgumentException("Published defense jury cannot be updated");
         }
 
         validateJuryMembers(request.getSupervisorId(), request.getPresidentId(), request.getReviewerId(), request.getExaminerId());
-        academicClient.ensureProfessorExists(request.getSupervisorId(), requestContext);
-        academicClient.ensureProfessorExists(request.getPresidentId(), requestContext);
-        academicClient.ensureProfessorExists(request.getReviewerId(), requestContext);
-        academicClient.ensureProfessorExists(request.getExaminerId(), requestContext);
 
         CheckConflictsRequest conflictRequest = new CheckConflictsRequest();
         conflictRequest.setDefenseDate(defense.getDefenseDate());
@@ -223,45 +216,20 @@ public class DefenseServiceImpl implements DefenseService {
 
     @Override
     @Transactional(readOnly = true)
-    public DefenseResponse getMyResult(AcademicClient.RequestContext requestContext) {
-        AcademicClient.CurrentStudentResponse student = academicClient.getCurrentStudent(requestContext);
-        Defense defense = defenseRepository.findTopByStudentIdOrderByDefenseDateDescStartTimeDesc(student.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Defense not found for current student"));
-        if (defense.getStatus() != DefenseStatus.PUBLISHED) {
-            throw new ResourceNotFoundException("Result not available");
-        }
-        return defenseMapper.toResponse(defense);
+    public DefenseResponse getMyResult(DefenseRequestContext requestContext) {
+        throw new UnsupportedOperationException("Current student result should be resolved by the orchestrator using student identity mapping.");
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DefenseResponse> getJuryDefenses(AcademicClient.RequestContext requestContext, JuryDashboardStatus status) {
-        AcademicClient.CurrentProfessorResponse professor = academicClient.getCurrentProfessor(requestContext);
-        return defenseRepository.findAllByOrderByDefenseDateAscStartTimeAsc().stream()
-                .filter(defense -> isProfessorInJury(defense, professor.getId()))
-                .filter(defense -> matchesJuryStatus(defense, professor.getId(), status))
-                .map(defenseMapper::toResponse)
-                .toList();
+    public List<DefenseResponse> getJuryDefenses(DefenseRequestContext requestContext, JuryDashboardStatus status) {
+        throw new UnsupportedOperationException("Jury defense listing should be resolved by the orchestrator with professor identity mapping.");
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<AvailableProfessorResponse> getAvailableJuryMembers(AcademicClient.RequestContext requestContext, String role, LocalDate date, LocalTime startTime, LocalTime endTime, Long excludeDefenseId) {
-        validateTimeRange(startTime, endTime);
-        String normalizedRole = role == null ? "" : role.trim().toUpperCase();
-        if (!Set.of("SUPERVISOR", "PRESIDENT", "REVIEWER", "EXAMINER").contains(normalizedRole)) {
-            throw new IllegalArgumentException("Unsupported jury role: " + role);
-        }
-
-        Set<Long> occupiedProfessorIds = defenseRepository.findByDefenseDate(date).stream()
-                .filter(defense -> excludeDefenseId == null || !excludeDefenseId.equals(defense.getId()))
-                .filter(defense -> timesOverlap(defense.getStartTime(), defense.getEndTime(), startTime, endTime))
-                .flatMap(defense -> List.of(defense.getSupervisorId(), defense.getPresidentId(), defense.getReviewerId(), defense.getExaminerId()).stream())
-                .collect(Collectors.toSet());
-
-        return academicClient.getAllProfessors(requestContext).stream()
-                .filter(professor -> !occupiedProfessorIds.contains(professor.getId()))
-                .toList();
+    public List<AvailableProfessorResponse> getAvailableJuryMembers(DefenseRequestContext requestContext, String role, LocalDate date, LocalTime startTime, LocalTime endTime, Long excludeDefenseId) {
+        throw new UnsupportedOperationException("Available jury members should be resolved by the orchestrator using academic-service professor data.");
     }
 
     private Defense getDefenseEntity(Long id) {
@@ -269,16 +237,9 @@ public class DefenseServiceImpl implements DefenseService {
                 .orElseThrow(() -> new ResourceNotFoundException("Defense not found with id: " + id));
     }
 
-    private void validateDefenseRequest(DefenseRequest request, Long excludeDefenseId, AcademicClient.RequestContext requestContext) {
+    private void validateDefenseRequest(DefenseRequest request, Long excludeDefenseId) {
         validateTimeRange(request.getStartTime(), request.getEndTime());
         validateJuryMembers(request.getSupervisorId(), request.getPresidentId(), request.getReviewerId(), request.getExaminerId());
-
-        academicClient.ensureStudentExists(request.getStudentId(), requestContext);
-        academicClient.ensureProfessorExists(request.getSupervisorId(), requestContext);
-        academicClient.ensureProfessorExists(request.getPresidentId(), requestContext);
-        academicClient.ensureProfessorExists(request.getReviewerId(), requestContext);
-        academicClient.ensureProfessorExists(request.getExaminerId(), requestContext);
-        roomClient.ensureRoomExists(request.getRoomId(), requestContext);
 
         CheckConflictsRequest conflictRequest = new CheckConflictsRequest();
         conflictRequest.setDefenseDate(request.getDefenseDate());

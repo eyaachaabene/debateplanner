@@ -103,13 +103,13 @@ export class DefenseService {
     return this.http.get<Defense>(`${environment.apiUrl}/students/me/result`);
   }
 
-  getJuryDefenses(status?: 'UPCOMING' | 'TODO' | 'DONE'): Observable<Defense[]> {
+  getJuryDefenses(status?: 'PLANNED' | 'ONGOING' | 'PUBLISHED'): Observable<Defense[]> {
     let params = new HttpParams();
 
     if (status) {
       params = params.set('status', status);
     }
-
+    console.log('Fetching jury defenses with status:', status);
     return this.http.get<Defense[]>(this.juryApiUrl, { params });
   }
 }

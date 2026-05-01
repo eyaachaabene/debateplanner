@@ -1,7 +1,7 @@
 package com.defensemanagement.defense.defense.controller;
 
-import com.defensemanagement.defense.client.AcademicClient;
 import com.defensemanagement.defense.defense.dto.DefenseRequest;
+import com.defensemanagement.defense.defense.dto.DefenseRequestContext;
 import com.defensemanagement.defense.defense.dto.DefenseResponse;
 import com.defensemanagement.defense.defense.dto.JuryAssignmentRequest;
 import com.defensemanagement.defense.defense.service.DefenseService;
@@ -29,9 +29,6 @@ class DefenseControllerTest {
 
     @Mock
     private DefenseService defenseService;
-
-    @Mock
-    private AcademicClient academicClient;
 
     @Mock
     private HttpServletRequest httpServletRequest;
@@ -70,7 +67,7 @@ class DefenseControllerTest {
         when(httpServletRequest.getHeader("X-User-Username")).thenReturn("admin");
         when(httpServletRequest.getHeader("X-User-Roles")).thenReturn("ROLE_ADMIN");
         when(httpServletRequest.getHeader("X-Request-Id")).thenReturn("req-123");
-        when(defenseService.create(any(DefenseRequest.class), any(AcademicClient.RequestContext.class)))
+        when(defenseService.create(any(DefenseRequest.class), any(DefenseRequestContext.class)))
                 .thenReturn(defenseResponse);
 
         ResponseEntity<DefenseResponse> response = defenseController.create(httpServletRequest, defenseRequest);
@@ -78,7 +75,7 @@ class DefenseControllerTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(1L, response.getBody().getId());
-        verify(defenseService).create(any(DefenseRequest.class), any(AcademicClient.RequestContext.class));
+        verify(defenseService).create(any(DefenseRequest.class), any(DefenseRequestContext.class));
     }
 
     @Test
@@ -104,7 +101,7 @@ class DefenseControllerTest {
         request.setReviewerId(4L);
         request.setExaminerId(5L);
 
-        when(defenseService.updateJury(any(Long.class), any(JuryAssignmentRequest.class), any(AcademicClient.RequestContext.class)))
+        when(defenseService.updateJury(any(Long.class), any(JuryAssignmentRequest.class), any(DefenseRequestContext.class)))
                 .thenReturn(request);
 
         ResponseEntity<JuryAssignmentRequest> response = defenseController.updateJury(httpServletRequest, 1L, request);

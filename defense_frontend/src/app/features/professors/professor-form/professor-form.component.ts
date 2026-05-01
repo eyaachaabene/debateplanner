@@ -200,6 +200,10 @@ export class ProfessorFormComponent implements OnInit {
     this.isSubmitting.set(true);
 
     const formData = this.professorForm.getRawValue();
+    
+    // ✅ ADD THIS CONSOLE LOG
+    console.log('Sending professor data:', formData);
+    console.log('Professor data JSON:', JSON.stringify(formData));
 
     const request$ = this.isEditMode
       ? this.professorService.update(this.professorId!, formData)
@@ -219,6 +223,7 @@ export class ProfessorFormComponent implements OnInit {
         this.goBack();
       },
       error: (error) => {
+        console.error('Professor creation error:', error);
         this.isSubmitting.set(false);
         this.snackBar.open(
           error?.error?.message || 'Une erreur est survenue',

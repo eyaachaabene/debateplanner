@@ -1,11 +1,11 @@
 package com.defensemanagement.defense.defense.service;
 
-import com.defensemanagement.defense.client.AcademicClient;
 import com.defensemanagement.defense.defense.dto.AvailableProfessorResponse;
 import com.defensemanagement.defense.defense.dto.CheckConflictsRequest;
 import com.defensemanagement.defense.defense.dto.ConflictCheckResponse;
 import com.defensemanagement.defense.defense.dto.DefenseGradesResponse;
 import com.defensemanagement.defense.defense.dto.DefenseRequest;
+import com.defensemanagement.defense.defense.dto.DefenseRequestContext;
 import com.defensemanagement.defense.defense.dto.DefenseResponse;
 import com.defensemanagement.defense.defense.dto.DefenseStatus;
 import com.defensemanagement.defense.defense.dto.JuryAssignmentRequest;
@@ -16,13 +16,13 @@ import java.time.LocalTime;
 import java.util.List;
 
 public interface DefenseService {
-    DefenseResponse create(DefenseRequest request, AcademicClient.RequestContext requestContext);
+    DefenseResponse create(DefenseRequest request, DefenseRequestContext requestContext);
 
     DefenseResponse getById(Long id);
 
     List<DefenseResponse> getAll(DefenseStatus status, LocalDate defenseDate);
 
-    DefenseResponse update(Long id, DefenseRequest request, AcademicClient.RequestContext requestContext);
+    DefenseResponse update(Long id, DefenseRequest request, DefenseRequestContext requestContext);
 
     void delete(Long id);
 
@@ -30,7 +30,7 @@ public interface DefenseService {
 
     JuryAssignmentRequest getJury(Long id);
 
-    JuryAssignmentRequest updateJury(Long id, JuryAssignmentRequest request, AcademicClient.RequestContext requestContext);
+    JuryAssignmentRequest updateJury(Long id, JuryAssignmentRequest request, DefenseRequestContext requestContext);
 
     DefenseGradesResponse getGrades(Long id);
 
@@ -48,9 +48,9 @@ public interface DefenseService {
 
     DefenseResponse getByStudent(Long studentId);
 
-    DefenseResponse getMyResult(AcademicClient.RequestContext requestContext);
+    DefenseResponse getMyResult(DefenseRequestContext requestContext);
 
-    List<DefenseResponse> getJuryDefenses(AcademicClient.RequestContext requestContext, JuryDashboardStatus status);
+    List<DefenseResponse> getJuryDefenses(DefenseRequestContext requestContext, JuryDashboardStatus status);
 
-    List<AvailableProfessorResponse> getAvailableJuryMembers(AcademicClient.RequestContext requestContext, String role, LocalDate date, LocalTime startTime, LocalTime endTime, Long excludeDefenseId);
+    List<AvailableProfessorResponse> getAvailableJuryMembers(DefenseRequestContext requestContext, String role, LocalDate date, LocalTime startTime, LocalTime endTime, Long excludeDefenseId);
 }

@@ -19,17 +19,101 @@ spring:
           predicates:
             - Path=/api/v1/auth/**
 
+        # ── Orchestrated user creation ─────────────────────────────────────────
+        - id: orchestrator-register-student
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/students
+            - Method=POST
+          filters:
+            - RewritePath=/api/v1/students, /internal/orchestrations/users/students
+
+        - id: orchestrator-register-professor
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/professors
+            - Method=POST
+          filters:
+            - RewritePath=/api/v1/professors, /internal/orchestrations/users/professors
+
+        # ── Orchestrated defense workflows ────────────────────────────────────
+        
+        # Grade submission
+        - id: orchestrator-grade-submission
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/defenses/{id}/grades/{role}
+            - Method=PUT
+          filters:
+            - SetPath=/internal/orchestrations/defenses/{id}/grades/{role}
+
+        # GET all defenses (ADD THIS - was missing)
+        - id: orchestrator-jury-defenses
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/jury/defenses
+            - Method=GET
+          filters:
+            - SetPath=/internal/orchestrations/jury/defenses
+        
+        # GET single defense by ID
+        - id: orchestrator-get-defense-by-id
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/defenses/{id}
+            - Method=GET
+          filters:
+            - RewritePath=/api/v1/defenses/(?<id>[^/]+), /internal/orchestrations/defenses/${id}
+        
+        # Create defense (POST)
+        - id: orchestrator-create-defense
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/defenses
+            - Method=POST
+          filters:
+            - RewritePath=/api/v1/defenses, /internal/orchestrations/defenses
+        
+        # Update defense (PUT)
+        - id: orchestrator-update-defense
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/defenses/**
+            - Method=PUT
+          filters:
+            - RewritePath=/api/v1/defenses/(?<path>.*), /internal/orchestrations/defenses/${path}
+        
+        
+
+
+        # Available jury members
+        - id: orchestrator-available-jury-members
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/defenses/available-jury-members
+            - Method=GET
+          filters:
+            - RewritePath=/api/v1/defenses/available-jury-members, /internal/orchestrations/defenses/available-jury-members
+
+        # Student result
+        - id: orchestrator-student-result
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/students/me/result
+            - Method=GET
+          filters:
+            - RewritePath=/api/v1/students/me/result, /internal/orchestrations/students/me/result
+
+        # Jury defenses
+        - id: orchestrator-jury-defenses
+          uri: ${ORCHESTRATOR_SERVICE_URL:http://localhost:8090}
+          predicates:
+            - Path=/api/v1/jury/defenses
+            - Method=GET
+          filters:
+            - RewritePath=/api/v1/jury/defenses, /internal/orchestrations/jury/defenses
+
         # ── Academic Service (students) ────────────────────────────────────────
-        - id: defense-service-student-results
-          uri: ${DEFENSE_SERVICE_URL:http://localhost:8084}
-          predicates:
-            - Path=/api/v1/students/me/result,/api/v1/students/*/result
-
-        - id: defense-service
-          uri: ${DEFENSE_SERVICE_URL:http://localhost:8084}
-          predicates:
-            - Path=/api/v1/defenses/**,/api/v1/jury/**
-
         - id: academic-service-students
           uri: ${ACADEMIC_SERVICE_URL:http://localhost:8082}
           predicates:
@@ -48,6 +132,11 @@ spring:
             - Path=/api/v1/rooms/**
 
         # ── Defense Service ───────────────────────────────────────────────────
+        - id: defense-service
+          uri: ${DEFENSE_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/v1/defenses/**
+
       # Global timeout settings
       httpclient:
         connect-timeout: 5000   # ms
@@ -58,6 +147,9 @@ jwt:
   # Must match the secret used by auth-service to sign tokens.
   # Override with JWT_SECRET environment variable in production.
   secret-key: dGhpc2lzYXZlcnlzZWN1cmVzZWNyZXRrZXlmb3JqV1RhY2Nlc3N0b2tlbmdlbmVyYXRpb25hbGdvcml0aG0=
+
+internal:
+  secret: MY_SUPER_SECRET_123
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 cors:
